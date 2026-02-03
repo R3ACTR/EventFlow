@@ -79,6 +79,7 @@ This causes confusion, unfair judging, and poor participant experience.
 
 ## 🖼️ Screenshots
 
+ Note: This is an early preview banner. Full UI screenshots will be added once dashboards and workflows are finalized.
 <img width="1500" alt="EventFlow UI" src="https://github.com/user-attachments/assets/184cae65-9946-498c-bc8d-36e975db0193" />
 
 ---
@@ -149,6 +150,7 @@ See `LICENSE` for details.
 
 ⭐ Star the repo if you like it  
 🤝 Contributions are welcome  
+
 
 
 
