@@ -57,8 +57,12 @@ export async function POST(request) {
             { message: "User registered successfully", user: { email: user.email, name: user.name, role: user.role } },
             { status: 201 }
         );
-    } catch (error) {
-        console.error("Registration error:", error);
-        return NextResponse.json({ error: "Registration failed" }, { status: 500 });
-    }
+    }catch (error) {
+    console.error("REGISTER ERROR FULL:", error);
+    return NextResponse.json(
+        { error: error.message, stack: error.stack },
+        { status: 500 }
+    );
+}
+
 }
