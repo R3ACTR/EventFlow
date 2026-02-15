@@ -27,7 +27,7 @@ export default function LoginPage() {
             if (res.ok) {
                 const role = data.user?.role || "participant";
                 console.log("Redirecting to:", role);
-                window.location.href = `/${role}`;
+                router.push("/" + role);
             } else {
                 setError(data.error || "Invalid credentials");
             }
