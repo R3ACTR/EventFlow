@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Zap, Menu, X } from "lucide-react";
+import { Zap, Menu, X, User as UserIcon, LogOut } from "lucide-react"; // Renamed User to UserIcon to avoid conflict
 import Button from "./Button";
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -48,14 +50,32 @@ export default function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="secondary" className="text-slate-700">
-                Login
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button variant="primary">Get Started</Button>
-            </Link>
+            {session ? (
+              <>
+                <span className="text-sm font-medium text-slate-600">
+                  {session.user?.name}
+                </span>
+                <Button
+                  variant="secondary"
+                  className="text-slate-700 flex items-center gap-2"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="secondary" className="text-slate-700">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button variant="primary">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -98,16 +118,28 @@ export default function Navbar() {
                 Browse Events
               </Link>
               <div className="pt-3 space-y-2">
-                <Link href="/login" className="block">
-                  <Button variant="secondary" className="w-full justify-center">
-                    Login
+                {session ? (
+                  <Button
+                    variant="secondary"
+                    className="w-full justify-center"
+                    onClick={() => signOut()}
+                  >
+                    Logout
                   </Button>
-                </Link>
-                <Link href="/register" className="block">
-                  <Button variant="primary" className="w-full justify-center">
-                    Get Started
-                  </Button>
-                </Link>
+                ) : (
+                  <>
+                    <Link href="/login" className="block">
+                      <Button variant="secondary" className="w-full justify-center">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/register" className="block">
+                      <Button variant="primary" className="w-full justify-center">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
