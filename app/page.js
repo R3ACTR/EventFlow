@@ -12,6 +12,7 @@ import {
     Code,
 } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
+import Aurora from "@/components/common/Aurora";
 
 const features = [
     {
@@ -63,23 +64,35 @@ const benefits = [
 
 export default function Home() {
     return (
-        <main className="min-h-screen">
+        <main className="min-h-screen bg-space-900 relative">
             {/* Navigation */}
-            <Navbar/>
+            <Navbar />
+
+            {/* Aurora Background - Full screen behind hero */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <Aurora
+                    colorStops={["#00ff87", "#60a5fa", "#00ff87"]}
+                    amplitude={1.2}
+                    blend={0.6}
+                    speed={0.8}
+                />
+            </div>
 
             {/* Hero Section */}
-            <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+            <section className="relative z-10 pt-32 pb-24 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 border border-primary-200 rounded-full text-primary-700 text-sm font-medium mb-8">
+                    <div className="inline-flex items-center gap-2 px-5 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full text-neon-cyan text-sm font-medium mb-8 backdrop-blur-sm">
                         <Star className="w-4 h-4" />
                         Open Source Event Infrastructure
                     </div>
-                    <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 mb-6 leading-tight">
-                        Run Hackathons &<br />
-                        <span className="text-primary-600">Tech Events</span>{" "}
+                    <h1 className="text-6xl sm:text-7xl lg:text-8xl font-normal text-white mb-8 leading-[1.1] tracking-tight font-serif italic">
+                        Run Hackathons <span className="font-serif italic text-neon-cyan">&</span><br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neon-cyan to-white/80 animate-pulse-glow">
+                            Tech Events
+                        </span>{" "}
                         Seamlessly
                     </h1>
-                    <p className="text-xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed font-mono">
                         EventFlow is a modular, open-source platform that
                         provides the complete digital infrastructure to run
                         hackathons, OSS programs, and community tech events —
@@ -88,7 +101,7 @@ export default function Home() {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
                         <Link
                             href="/register"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl font-semibold text-lg hover:bg-primary-700 transition shadow-lg shadow-primary-600/25"
+                            className="btn-neon inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 tracking-wide text-sm"
                         >
                             Start Organizing
                             <ArrowRight className="w-5 h-5" />
@@ -96,7 +109,7 @@ export default function Home() {
                         <Link
                             href="https://github.com/R3ACTR/EventFlow"
                             target="_blank"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-semibold text-lg hover:bg-slate-800 transition"
+                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 text-white rounded-xl font-semibold text-lg hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-white/20 backdrop-blur-sm"
                         >
                             <Code className="w-5 h-5" />
                             View on GitHub
@@ -104,60 +117,54 @@ export default function Home() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-slate-900">
-                                100%
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                        {[
+                            { value: "100%", label: "Open Source" },
+                            { value: "4+", label: "User Roles" },
+                            { value: "7+", label: "Modules" },
+                            { value: "MIT", label: "License" },
+                        ].map((stat, i) => (
+                            <div
+                                key={i}
+                                className="glass-card rounded-xl p-5 text-center transition-all duration-300"
+                            >
+                                <div className="text-2xl sm:text-3xl font-bold text-white text-glow">
+                                    {stat.value}
+                                </div>
+                                <div className="text-slate-500 text-sm mt-1 uppercase tracking-wider font-mono">
+                                    {stat.label}
+                                </div>
                             </div>
-                            <div className="text-slate-600">Open Source</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-slate-900">
-                                4+
-                            </div>
-                            <div className="text-slate-600">User Roles</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-slate-900">
-                                7+
-                            </div>
-                            <div className="text-slate-600">Modules</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-3xl font-bold text-slate-900">
-                                MIT
-                            </div>
-                            <div className="text-slate-600">License</div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
+            <section id="features" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-slate-900 mb-4">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
                             Everything You Need to Run Events
                         </h2>
-                        <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                        <p className="text-lg text-slate-400 max-w-2xl mx-auto font-mono">
                             A comprehensive suite of tools designed specifically
                             for hackathons and tech events.
                         </p>
                     </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {features.map((feature, index) => (
                             <div
                                 key={index}
-                                className="bg-white p-8 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-lg transition-all duration-300"
+                                className="glass-card border-glow p-8 rounded-2xl transition-all duration-400 group"
                             >
-                                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mb-6">
-                                    <feature.icon className="w-6 h-6 text-primary-600" />
+                                <div className="w-12 h-12 bg-gradient-to-br from-neon-cyan/20 to-neon-violet/20 rounded-xl flex items-center justify-center mb-6 border border-neon-cyan/10 group-hover:border-neon-cyan/30 transition-colors">
+                                    <feature.icon className="w-6 h-6 text-neon-cyan" />
                                 </div>
-                                <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                                <h3 className="text-xl font-semibold text-white mb-3 tracking-wide text-base">
                                     {feature.title}
                                 </h3>
-                                <p className="text-slate-600 leading-relaxed">
+                                <p className="text-slate-400 leading-relaxed text-sm font-mono">
                                     {feature.description}
                                 </p>
                             </div>
@@ -167,14 +174,14 @@ export default function Home() {
             </section>
 
             {/* Benefits Section */}
-            <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8">
+            <section id="benefits" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div>
-                            <h2 className="text-4xl font-bold text-slate-900 mb-6">
+                            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 tracking-tight">
                                 Why Choose EventFlow?
                             </h2>
-                            <p className="text-xl text-slate-600 mb-8">
+                            <p className="text-lg text-slate-400 mb-8 font-mono">
                                 Stop juggling disconnected tools. EventFlow
                                 brings everything into one extensible system —
                                 built for organizers, participants, mentors, and
@@ -184,53 +191,36 @@ export default function Home() {
                                 {benefits.map((benefit, index) => (
                                     <li
                                         key={index}
-                                        className="flex items-start gap-3"
+                                        className="flex items-start gap-3 group"
                                     >
-                                        <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                                        <span className="text-slate-700 text-lg">
+                                        <CheckCircle className="w-5 h-5 text-neon-cyan flex-shrink-0 mt-0.5 group-hover:drop-shadow-[0_0_6px_rgba(0,255,135,0.5)] transition" />
+                                        <span className="text-slate-300 text-base font-mono">
                                             {benefit}
                                         </span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
-                        <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl p-8 text-white">
-                            <h3 className="text-2xl font-bold mb-6">
+                        <div className="glass-card rounded-3xl p-8 border-glow">
+                            <h3 className="text-2xl font-bold text-white mb-6 tracking-wide text-lg">
                                 Role-Based Dashboards
                             </h3>
                             <div className="space-y-4">
-                                <div className="bg-white/10 rounded-xl p-4">
-                                    <div className="font-semibold mb-1">
-                                        Admin Dashboard
+                                {[
+                                    { title: "Admin Dashboard", desc: "Manage events, users, and system settings" },
+                                    { title: "Participant Dashboard", desc: "Track projects, teams, and submissions" },
+                                    { title: "Judge Dashboard", desc: "Evaluate projects with custom rubrics" },
+                                    { title: "Mentor Dashboard", desc: "Guide teams and track mentorship" },
+                                ].map((item, i) => (
+                                    <div key={i} className="bg-white/[0.04] rounded-xl p-4 border border-white/[0.06] hover:border-neon-cyan/20 transition-colors">
+                                        <div className="font-semibold mb-1 text-white">
+                                            {item.title}
+                                        </div>
+                                        <div className="text-slate-500 text-sm font-mono">
+                                            {item.desc}
+                                        </div>
                                     </div>
-                                    <div className="text-primary-100 text-sm">
-                                        Manage events, users, and system settings
-                                    </div>
-                                </div>
-                                <div className="bg-white/10 rounded-xl p-4">
-                                    <div className="font-semibold mb-1">
-                                        Participant Dashboard
-                                    </div>
-                                    <div className="text-primary-100 text-sm">
-                                        Track projects, teams, and submissions
-                                    </div>
-                                </div>
-                                <div className="bg-white/10 rounded-xl p-4">
-                                    <div className="font-semibold mb-1">
-                                        Judge Dashboard
-                                    </div>
-                                    <div className="text-primary-100 text-sm">
-                                        Evaluate projects with custom rubrics
-                                    </div>
-                                </div>
-                                <div className="bg-white/10 rounded-xl p-4">
-                                    <div className="font-semibold mb-1">
-                                        Mentor Dashboard
-                                    </div>
-                                    <div className="text-primary-100 text-sm">
-                                        Guide teams and track mentorship
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -238,67 +228,69 @@ export default function Home() {
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900">
+            <section className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-4xl font-bold text-white mb-6">
-                        Ready to Power Your Next Event?
-                    </h2>
-                    <p className="text-xl text-slate-300 mb-10">
-                        Join the open-source community and start running better
-                        hackathons today.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            href="/register"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl font-semibold text-lg hover:bg-primary-700 transition"
-                        >
-                            Get Started Free
-                            <ArrowRight className="w-5 h-5" />
-                        </Link>
-                        <Link
-                            href="/events"
-                            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white rounded-xl font-semibold text-lg hover:bg-white/20 transition border border-white/20"
-                        >
-                            Browse Events
-                        </Link>
+                    <div className="glass-card rounded-3xl p-12 sm:p-16 border-glow">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6 tracking-tight">
+                            Ready to Power Your Next Event?
+                        </h2>
+                        <p className="text-lg text-slate-400 mb-10 font-mono">
+                            Join the open-source community and start running better
+                            hackathons today.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                href="/register"
+                                className="btn-neon inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all duration-300 tracking-wide text-sm"
+                            >
+                                Get Started Free
+                                <ArrowRight className="w-5 h-5" />
+                            </Link>
+                            <Link
+                                href="/events"
+                                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 text-white rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-white/20"
+                            >
+                                Browse Events
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-slate-950">
+            <footer className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 border-t border-white/[0.06]">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-violet rounded-lg flex items-center justify-center">
                                 <Zap className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-xl font-bold text-white">
+                            <span className="text-xl font-bold text-white tracking-wider">
                                 EventFlow
                             </span>
                         </div>
-                        <div className="flex items-center gap-8 text-slate-400">
+                        <div className="flex items-center gap-8">
                             <Link
                                 href="/events"
-                                className="hover:text-white transition"
+                                className="text-slate-500 hover:text-neon-cyan transition text-sm uppercase tracking-wider"
                             >
                                 Events
                             </Link>
                             <Link
                                 href="https://github.com/R3ACTR/EventFlow"
                                 target="_blank"
-                                className="hover:text-white transition"
+                                className="text-slate-500 hover:text-neon-cyan transition text-sm uppercase tracking-wider"
                             >
                                 GitHub
                             </Link>
                             <Link
                                 href="/login"
-                                className="hover:text-white transition"
+                                className="text-slate-500 hover:text-neon-cyan transition text-sm uppercase tracking-wider"
                             >
                                 Login
                             </Link>
                         </div>
-                        <div className="text-slate-500 text-sm">
+                        <div className="text-slate-600 text-sm">
                             Built with love for the open-source community
                         </div>
                     </div>

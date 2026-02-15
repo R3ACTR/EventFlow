@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5rem;
@@ -9,17 +11,187 @@ html {
 }
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 255, 255, 255;
+  --color-bg: #050510;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-cyan: #00ff87;
+  --color-violet: #60a5fa;
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* Sci-Fi Glow Utilities */
+.text-glow {
+  text-shadow:
+    0 0 10px rgba(0, 255, 135, 0.5),
+    0 0 40px rgba(0, 255, 135, 0.2),
+    0 0 80px rgba(0, 255, 135, 0.1);
+}
+
+.text-glow-violet {
+  text-shadow:
+    0 0 10px rgba(96, 165, 250, 0.5),
+    0 0 40px rgba(96, 165, 250, 0.2),
+    0 0 80px rgba(96, 165, 250, 0.1);
+}
+
+.text-glow-white {
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 255, 135, 0.3);
+  box-shadow:
+    0 0 20px rgba(0, 255, 135, 0.08),
+    inset 0 0 20px rgba(0, 255, 135, 0.02);
+}
+
+/* Neon border glow */
+.border-glow {
+  position: relative;
+}
+
+.border-glow::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 255, 135, 0.3), rgba(96, 165, 250, 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.border-glow:hover::after {
+  opacity: 1;
+}
+
+/* Neon button — animated border light */
+.btn-neon {
+  position: relative;
+  color: #fff;
+  z-index: 1;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Rotating gradient ring */
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 600%;
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent 100deg,
+      #00ff87 140deg,
+      #60a5fa 180deg,
+      #a78bfa 220deg,
+      transparent 260deg,
+      transparent 360deg);
+  transform: translate(-50%, -50%);
+  animation: neon-rotate 3s linear infinite;
+  z-index: -2;
+}
+
+/* Black inner fill to reveal only the border */
+.btn-neon::after {
+  content: '';
+  position: absolute;
+  inset: 1.5px;
+  border-radius: inherit;
+  background: #000;
+  z-index: -1;
+}
+
+.btn-neon:hover::before {
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent 70deg,
+      #00ff87 120deg,
+      #60a5fa 180deg,
+      #a78bfa 240deg,
+      transparent 290deg,
+      transparent 360deg);
+  filter: brightness(1.4);
+}
+
+.btn-neon:hover::after {
+  box-shadow: inset 0 0 20px rgba(0, 255, 135, 0.05);
+}
+
+@keyframes neon-rotate {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Pulse animation */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Scan line effect for headings */
+@keyframes scanline {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050510;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 135, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 135, 0.4);
 }
