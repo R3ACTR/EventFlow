@@ -87,9 +87,9 @@ export default function RegisterPage() {
                 border: "1px solid rgba(255, 255, 255, 0.1)"
             }}>
                 <div style={{ textAlign: "center", marginBottom: "32px" }}>
-                    <h2 style={{ 
-                        fontSize: "32px", 
-                        fontWeight: "700", 
+                    <h2 style={{
+                        fontSize: "32px",
+                        fontWeight: "700",
                         color: "#ffffff",
                         marginBottom: "8px"
                     }}>
@@ -100,7 +100,7 @@ export default function RegisterPage() {
                     </p>
                 </div>
 
-               <form onSubmit={(e)=>e.preventDefault()}>
+                <form onSubmit={handleSubmit}>
 
                     <div style={{ marginBottom: "20px" }}>
                         <label style={labelStyle}>Full Name</label>
@@ -157,10 +157,10 @@ export default function RegisterPage() {
                     </div>
 
                     {error && (
-                        <div style={{ 
-                            padding: "12px", 
+                        <div style={{
+                            padding: "12px",
                             borderRadius: "8px",
-                            background: "rgba(239, 68, 68, 0.15)", 
+                            background: "rgba(239, 68, 68, 0.15)",
                             border: "1px solid rgba(239, 68, 68, 0.3)",
                             color: "#fca5a5",
                             fontSize: "13px",
@@ -172,10 +172,10 @@ export default function RegisterPage() {
                     )}
 
                     {success && (
-                        <div style={{ 
-                            padding: "12px", 
+                        <div style={{
+                            padding: "12px",
                             borderRadius: "8px",
-                            background: "rgba(34, 197, 94, 0.15)", 
+                            background: "rgba(34, 197, 94, 0.15)",
                             border: "1px solid rgba(34, 197, 94, 0.3)",
                             color: "#86efac",
                             fontSize: "13px",
@@ -205,17 +205,17 @@ export default function RegisterPage() {
                         {loading ? "Creating account..." : "Sign Up"}
                     </button>
 
-                    <div style={{ 
-                        marginTop: "24px", 
-                        textAlign: "center", 
+                    <div style={{
+                        marginTop: "24px",
+                        textAlign: "center",
                         fontSize: "14px",
                         color: "rgba(255, 255, 255, 0.6)"
                     }}>
                         Already have an account?{' '}
-                        <a 
-                            href="/login" 
-                            style={{ 
-                                color: "#60a5fa", 
+                        <a
+                            href="/login"
+                            style={{
+                                color: "#60a5fa",
                                 fontWeight: "600",
                                 textDecoration: "none"
                             }}
