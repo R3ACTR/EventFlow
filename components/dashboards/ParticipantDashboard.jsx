@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import CopyButton from "@/components/CopyButton";
+
 
 /**
  * Participant Dashboard Component
@@ -13,5 +15,10 @@ export default function ParticipantDashboard({ userId, role }) {
       <h1>Participant Dashboard</h1>
       <p>Implementation in progress by Person 2...</p>
     </div>
+    <div className="flex items-center gap-2">
+  <span>{dashboardData.certificateId}</span>
+  <CopyButton text={dashboardData.certificateId} />
+</div>
+
   );
 }
