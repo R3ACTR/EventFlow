@@ -2,10 +2,93 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowRight, ArrowLeft } from "lucide-react";
-import Navbar from "@/components/common/Navbar";
-import Aurora from "@/components/common/Aurora";
+import { validateRegister } from "@/utils/validateRegister";
+
+
+
+
+const [errors, setErrors] = useState({});
+const [status, setStatus] = useState({
+  error: "",
+  success: "",
+  loading: false,
+});
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: "24px",
+    backgroundImage: "url(/auth-bg.jpg)",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  },
+  card: {
+    width: "100%",
+    maxWidth: "440px",
+    padding: "40px",
+    borderRadius: "16px",
+    background: "rgba(15, 23, 42, 0.85)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+  },
+  input: {
+    width: "100%",
+    padding: "14px 16px",
+    borderRadius: "10px",
+    background: "rgba(255, 255, 255, 0.08)",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+    color: "#ffffff",
+    fontSize: "15px",
+    outline: "none",
+    boxSizing: "border-box",
+  },
+  label: {
+    display: "block",
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.8)",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    marginBottom: "8px",
+  },
+};
+
+function InputField({ label, type, name, value, onChange, disabled, placeholder, error }) {
+  return (
+    <div style={{ marginBottom: "20px" }}>
+      <label style={styles.label} htmlFor={name}>
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        required
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        style={{
+          ...styles.input,
+          border: error ? "1px solid #ef4444" : styles.input.border
+        }}
+        placeholder={placeholder}
+      />
+      {error && (
+        <p style={{ color: "#f87171", fontSize: "12px", marginTop: "6px" }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,45 +106,63 @@ export default function RegisterPage() {
     loading: false,
   });
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+
+  if (errors[name]) {
+    setErrors((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: "",
     }));
-  };
+  }
+};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus({ error: "", success: "", loading: true });
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  const validationErrors = validateRegister(formData);
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
 
-      const data = await res.json();
+  setErrors({});
+  setStatus({ error: "", success: "", loading: true });
 
-      if (!res.ok) {
-        throw new Error(data.error || "Registration failed");
-      }
+  try {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-      setStatus({
-        error: "",
-        success: "Registration successful! Redirecting...",
-        loading: false,
-      });
+    const data = await res.json();
 
-      setTimeout(() => router.push("/login"), 1500);
-    } catch (err) {
-      setStatus({
-        error: err.message || "Something went wrong.",
-        success: "",
-        loading: false,
-      });
+    if (!res.ok) {
+      throw new Error(data.error || "Registration failed");
     }
-  };
+
+    setStatus({
+      error: "",
+      success: "Registration successful! Redirecting to login...",
+      loading: false,
+    });
+
+    setTimeout(() => router.push("/login"), 1500);
+  } catch (err) {
+    setStatus({
+      error: err.message || "Something went wrong.",
+      success: "",
+      loading: false,
+    });
+  }
+};
+
 
   return (
     <main className="bg-space-900 relative min-h-screen">
@@ -129,6 +230,41 @@ export default function RegisterPage() {
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/40 transition"
             />
 
+        <form onSubmit={handleSubmit}>
+          <InputField
+            label="Full Name"
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={status.loading}
+            placeholder="Enter your name"
+            error={errors.name}
+          />
+
+          <InputField
+            label="Email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            disabled={status.loading}
+            placeholder="Enter your email"
+          />
+
+          <InputField
+            label="Password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            disabled={status.loading}
+            placeholder="Create a password"
+            error={errors.password}
+          />
+
+          <div style={{ marginBottom: "24px" }}>
+            <label style={styles.label}>I am a</label>
             <select
               name="role"
               value={formData.role}
@@ -179,3 +315,7 @@ export default function RegisterPage() {
     </main>
   );
 }
+
+
+
+
