@@ -1,158 +1,127 @@
 "use client";
+
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Input, Label, ErrorText, FormField } from "@/components/ui/form";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import { Input, Label, FormField } from "@/components/ui/form";
+import Navbar from "@/components/common/Navbar";
+import Aurora from "@/components/common/Aurora";
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-        try {
-            const result = await signIn("credentials", {
-                email,
-                password,
-                redirect: false,
-            });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-            if (result?.error) {
-                setError("Invalid credentials");
-            } else {
-                // Fetch session to get user role for redirect
-                const sessionRes = await fetch("/api/auth/session");
-                const session = await sessionRes.json();
-                const role = session?.user?.role || "participant";
-                router.push(`/${role}`);
-            }
-        } catch (err) {
-            setError("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (result?.error) {
+        setError("Invalid credentials");
+      } else {
+        router.push("/");
+      }
+    } catch {
+      setError("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div style={{
-            minHeight: "100vh",
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundImage: "url(/auth-bg.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat"
-        }}>
-            <div style={{
-                width: "100%",
-                maxWidth: "400px",
-                padding: "40px",
-                borderRadius: "16px",
-                background: "rgba(15, 23, 42, 0.85)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-                border: "1px solid rgba(255, 255, 255, 0.1)"
-            }}>
-                <div style={{ textAlign: "center", marginBottom: "32px" }}>
-                    <h2 style={{
-                        fontSize: "32px",
-                        fontWeight: "700",
-                        color: "#ffffff",
-                        marginBottom: "8px"
-                    }}>
-                        Welcome back
-                    </h2>
-                    <p style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "14px" }}>
-                        Sign in to your account
-                    </p>
-                </div>
+  return (
+    <main className="min-h-screen bg-space-900 relative">
+      <Navbar />
 
-                <form onSubmit={handleSubmit}>
-                    <FormField>
-                        <Label>Email</Label>
-                        <Input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </FormField>
+      {/* Aurora background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Aurora
+          colorStops={["#00ff87", "#60a5fa", "#00ff87"]}
+          amplitude={1}
+          blend={0.6}
+          speed={0.8}
+        />
+      </div>
 
-                    <FormField>
-                        <Label>Password</Label>
-                        <Input
-                            type="password"
-                            placeholder="Password "
-                            name="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </FormField>
+      <section className="relative z-10 flex items-center justify-center min-h-screen px-4">
+        <div className="glass-card border-glow w-full max-w-md rounded-2xl p-10 backdrop-blur-xl">
+          
+          <div className="relative mb-8">
+            <button
+                onClick={() => router.push("/")}
+                className="absolute -top-2 -left-2 p-2 rounded-lg text-slate-400 hover:text-neon-cyan hover:bg-white/5 transition"
+            >
+                <ArrowLeft className="w-5 h-5" />
+            </button>
 
-                    {error && (
-                        <div style={{
-                            padding: "12px",
-                            borderRadius: "8px",
-                            background: "rgba(239, 68, 68, 0.15)",
-                            border: "1px solid rgba(239, 68, 68, 0.3)",
-                            color: "#fca5a5",
-                            fontSize: "13px",
-                            textAlign: "center",
-                            marginBottom: "16px"
-                        }}>
-                            {error}
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        style={{
-                            width: "100%",
-                            padding: "14px",
-                            borderRadius: "10px",
-                            background: loading ? "rgba(59, 130, 246, 0.6)" : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                            color: "#ffffff",
-                            fontWeight: "600",
-                            fontSize: "15px",
-                            border: "none",
-                            cursor: loading ? "not-allowed" : "pointer",
-                            boxShadow: "0 4px 14px 0 rgba(59, 130, 246, 0.4)"
-                        }}
-                    >
-                        {loading ? "Signing in..." : "Sign In"}
-                    </button>
-                </form>
-
-                <div style={{
-                    marginTop: "24px",
-                    textAlign: "center",
-                    fontSize: "14px",
-                    color: "rgba(255, 255, 255, 0.6)"
-                }}>
-                    Don&apos;t have an account?{' '}
-                    <a
-                        href="/register"
-                        style={{
-                            color: "#60a5fa",
-                            fontWeight: "600",
-                            textDecoration: "none"
-                        }}
-                    >
-                        Sign Up
-                    </a>
-                </div>
+            <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+                Welcome Back
+                </h2>
+                <p className="text-slate-400 text-sm font-mono">
+                Sign in to continue building
+                </p>
             </div>
+            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormField>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormField>
+
+            <FormField>
+              <Label>Password</Label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </FormField>
+
+            {error && (
+              <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-neon w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide text-sm"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+              {!loading && <ArrowRight className="w-4 h-4" />}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center text-sm text-slate-500 font-mono">
+            Don’t have an account?{" "}
+            <Link
+              href="/register"
+              className="text-neon-cyan hover:text-white transition"
+            >
+              Sign Up
+            </Link>
+          </div>
         </div>
-    );
+      </section>
+    </main>
+  );
 }
