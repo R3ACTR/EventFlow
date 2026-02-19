@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-const ThemeContext = createContext<any>(null);
+const ThemeContext = createContext(null);
 
-export function ThemeProvider({ children }: any) {
+export function ThemeProvider({ children }) {
   const [darkMode, setDarkMode] = useState(false);
 
   // Load theme on mount
