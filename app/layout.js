@@ -12,10 +12,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="antialiased bg-space-900 text-slate-200 font-sans">
-        <ThemeProvider>
-          <GlobalAnnouncements />
-          {children}
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider>
+            <GlobalAnnouncements />
+            {children}
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
