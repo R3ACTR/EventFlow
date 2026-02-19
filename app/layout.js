@@ -1,5 +1,6 @@
 import "./globals.css";
 import Providers from "./providers";
+import GlobalAnnouncements from "@/components/GlobalAnnouncements";
 
 
 export const metadata = {
@@ -15,10 +16,8 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         <Providers>
-          <ThemeProvider>
-            <GlobalAnnouncements />
-            {children}
-          </ThemeProvider>
+          <GlobalAnnouncements />
+          {children}
         </Providers>
       </body>
     </html>

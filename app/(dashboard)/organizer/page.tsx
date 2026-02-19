@@ -13,14 +13,18 @@ import {
     Trash,
     Settings,
     ChevronRight,
-    BarChart
+    BarChart,
+    Gavel // Added icon for judges
 } from "lucide-react";
+import AssignJudgesModal from "@/components/dashboards/organizer/AssignJudgesModal";
 
 export default function OrganizerDashboard() {
     const { data: session } = useSession();
     const user = session?.user;
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [showJudgeModal, setShowJudgeModal] = useState(false);
 
     useEffect(() => {
         if (session?.user?.role === 'organizer') {
@@ -196,11 +200,21 @@ export default function OrganizerDashboard() {
                                         </div>
 
                                         <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedEvent(event);
+                                                    setShowJudgeModal(true);
+                                                }}
+                                                className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-indigo-300 text-sm font-medium transition-all shadow-sm flex items-center gap-2"
+                                            >
+                                                <Gavel className="w-4 h-4" />
+                                                Judges
+                                            </button>
                                             <Link
                                                 href={`/organizer/events/${event._id}`}
                                                 className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 hover:border-indigo-300 text-sm font-medium transition-all shadow-sm"
                                             >
-                                                Manage Dashboard
+                                                Manage
                                             </Link>
                                             <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100">
                                                 <Trash className="w-5 h-5" />
@@ -212,7 +226,20 @@ export default function OrganizerDashboard() {
                         </div>
                     )}
                 </div>
+
+                {/* Modals */}
+                {
+                    showJudgeModal && selectedEvent && (
+                        <AssignJudgesModal
+                            event={selectedEvent}
+                            onClose={() => {
+                                setShowJudgeModal(false);
+                                setSelectedEvent(null);
+                            }}
+                        />
+                    )
+                }
             </div>
-        </div>
+        </div >
     );
 }

@@ -99,75 +99,80 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={labelStyle}>Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            disabled={loading}
-                            style={inputStyle}
-                            placeholder="Enter your name"
-                        />
-                    </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Enter your name"
+                />
+              </div>
 
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={labelStyle}>Email</label>
-                        <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            disabled={loading}
-                            style={inputStyle}
-                            placeholder="Enter your email"
-                        />
-                    </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Enter your email"
+                />
+              </div>
 
-                    <div style={{ marginBottom: "20px" }}>
-                        <label style={labelStyle}>Password</label>
-                        <input
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={loading}
-                            style={inputStyle}
-                            placeholder="Create a password"
-                        />
-                    </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Create a password"
+                />
+              </div>
 
-                    <div style={{ marginBottom: "24px" }}>
-                        <label style={labelStyle}>I am a</label>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            disabled={loading}
-                            style={inputStyle}
-                        >
-                            <option value="participant" style={{ color: "#1f2937" }}>Participant</option>
-                            <option value="organizer" style={{ color: "#1f2937" }}>Organizer</option>
-                            <option value="mentor" style={{ color: "#1f2937" }}>Mentor</option>
-                            <option value="judge" style={{ color: "#1f2937" }}>Judge</option>
-                            <option value="admin" style={{ color: "#1f2937" }}>Admin</option>
-                        </select>
-                    </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  I am a
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition appearance-none"
+                >
+                  <option value="participant" className="bg-space-900 text-slate-200">Participant</option>
+                  <option value="organizer" className="bg-space-900 text-slate-200">Organizer</option>
+                  <option value="mentor" className="bg-space-900 text-slate-200">Mentor</option>
+                  <option value="judge" className="bg-space-900 text-slate-200">Judge</option>
+                  <option value="admin" className="bg-space-900 text-slate-200">Admin</option>
+                </select>
+              </div>
+            </div>
 
-                    {error && (
-                        <div style={{
-                            padding: "12px",
-                            borderRadius: "8px",
-                            background: "rgba(239, 68, 68, 0.15)",
-                            border: "1px solid rgba(239, 68, 68, 0.3)",
-                            color: "#fca5a5",
-                            fontSize: "13px",
-                            textAlign: "center",
-                            marginBottom: "16px"
-                        }}>
-                            {error}
-                        </div>
-                    )}
+            {status.error && (
+              <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center mb-4">
+                {status.error}
+              </div>
+            )}
 
             {status.success && (
               <div className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">

@@ -353,55 +353,57 @@ export default function ProfilePage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Team Info */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                Your Team
-              </h3>
+            {/* Team Info (Hidden for Judges) */}
+            {displayRole !== "judge" && displayRole !== "admin" && (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  Your Team
+                </h3>
 
-              {team ? (
-                <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-slate-100">
-                    <p className="font-semibold text-slate-900">{team.name}</p>
-                    <p className="text-sm text-slate-500 mt-1">{team.event?.title || "No event"}</p>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    <div className="flex items-center justify-between py-2.5 text-sm">
-                      <span className="text-slate-500">Role</span>
-                      <span className="font-medium text-slate-900">
-                        {team.leader?._id === user?._id ? "Leader" : "Member"}
-                      </span>
+                {team ? (
+                  <div className="space-y-3">
+                    <div className="p-4 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-slate-100">
+                      <p className="font-semibold text-slate-900">{team.name}</p>
+                      <p className="text-sm text-slate-500 mt-1">{team.event?.title || "No event"}</p>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 text-sm">
-                      <span className="text-slate-500">Members</span>
-                      <span className="font-medium text-slate-900">
-                        {(team.members?.length || 0) + 1}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between py-2.5 text-sm">
-                      <span className="text-slate-500">Invite Code</span>
-                      <code className="font-mono text-xs bg-slate-100 px-2.5 py-1 rounded-md text-blue-700">
-                        {team.inviteCode}
-                      </code>
+                    <div className="divide-y divide-slate-100">
+                      <div className="flex items-center justify-between py-2.5 text-sm">
+                        <span className="text-slate-500">Role</span>
+                        <span className="font-medium text-slate-900">
+                          {team.leader?._id === user?._id ? "Leader" : "Member"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 text-sm">
+                        <span className="text-slate-500">Members</span>
+                        <span className="font-medium text-slate-900">
+                          {(team.members?.length || 0) + 1}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-2.5 text-sm">
+                        <span className="text-slate-500">Invite Code</span>
+                        <code className="font-mono text-xs bg-slate-100 px-2.5 py-1 rounded-md text-blue-700">
+                          {team.inviteCode}
+                        </code>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-6 h-6 text-slate-400" />
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 text-sm mb-3">No team yet</p>
+                    <Link
+                      href="/participant"
+                      className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
+                    >
+                      Create or join a team →
+                    </Link>
                   </div>
-                  <p className="text-slate-500 text-sm mb-3">No team yet</p>
-                  <Link
-                    href="/participant"
-                    className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors"
-                  >
-                    Create or join a team →
-                  </Link>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Activity Stats */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
@@ -416,9 +418,15 @@ export default function ProfilePage() {
                   <span className="text-sm font-semibold text-slate-900">1</span>
                 </div>
                 <div className="flex items-center justify-between py-2.5">
-                  <span className="text-sm text-slate-500">Teams</span>
-                  <span className="text-sm font-semibold text-slate-900">{team ? 1 : 0}</span>
+                  <span className="text-sm text-slate-500">Events Joined</span>
+                  <span className="text-sm font-semibold text-slate-900">1</span>
                 </div>
+                {displayRole !== "judge" && displayRole !== "admin" && (
+                  <div className="flex items-center justify-between py-2.5">
+                    <span className="text-sm text-slate-500">Teams</span>
+                    <span className="text-sm font-semibold text-slate-900">{team ? 1 : 0}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between py-2.5">
                   <span className="text-sm text-slate-500">Submissions</span>
                   <span className="text-sm font-semibold text-slate-900">3</span>

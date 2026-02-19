@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ArrowLeft } from "lucide-react";
@@ -31,7 +31,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid credentials");
       } else {
-        router.push("/");
+        const session = await getSession();
+        const role = session?.user?.role || "participant";
+        router.push(`/${role}`);
       }
     } catch {
       setError("Something went wrong.");
@@ -56,24 +58,24 @@ export default function LoginPage() {
 
       <section className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="glass-card border-glow w-full max-w-md rounded-2xl p-10 backdrop-blur-xl">
-          
+
           <div className="relative mb-8">
             <button
-                onClick={() => router.push("/")}
-                className="absolute -top-2 -left-2 p-2 rounded-lg text-slate-400 hover:text-neon-cyan hover:bg-white/5 transition"
+              onClick={() => router.push("/")}
+              className="absolute -top-2 -left-2 p-2 rounded-lg text-slate-400 hover:text-neon-cyan hover:bg-white/5 transition"
             >
-                <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
 
             <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+              <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
                 Welcome Back
-                </h2>
-                <p className="text-slate-400 text-sm font-mono">
+              </h2>
+              <p className="text-slate-400 text-sm font-mono">
                 Sign in to continue building
-                </p>
+              </p>
             </div>
-            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <FormField>
               <Label>Email</Label>

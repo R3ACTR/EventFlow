@@ -45,92 +45,24 @@ export default function JudgeDashboard() {
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchJudgeData = async (userId) => {
+  const fetchJudgeData = async () => {
     try {
-      // In a real app, this would fetch from API
-      // For now, using mock data
-      setTimeout(() => {
-        setSubmissions([
-          {
-            id: 1,
-            teamName: "Team Apollo",
-            projectName: "AI-Powered Analytics Platform",
-            event: "HackTech 2026",
-            submittedAt: "2026-02-14T10:30:00Z",
-            status: "pending",
-            members: 4,
-            description: "An AI-powered analytics platform that helps businesses make data-driven decisions."
-          },
-          {
-            id: 2,
-            teamName: "HyperLoopers",
-            projectName: "Sustainable Transport Solution",
-            event: "HackTech 2026",
-            submittedAt: "2026-02-13T15:45:00Z",
-            status: "pending",
-            members: 3,
-            description: "A revolutionary sustainable transport solution using magnetic levitation."
-          },
-          {
-            id: 3,
-            teamName: "EcoInnovators",
-            projectName: "Green Energy Grid",
-            event: "HackTech 2026",
-            submittedAt: "2026-02-12T09:00:00Z",
-            status: "pending",
-            members: 5,
-            description: "A smart grid system for efficient distribution of renewable energy."
-          },
-          {
-            id: 4,
-            teamName: "DataViz Wizards",
-            projectName: "Interactive Dashboard",
-            event: "HackTech 2026",
-            submittedAt: "2026-02-11T14:20:00Z",
-            status: "pending",
-            members: 4,
-            description: "Real-time data visualization dashboard for enterprise analytics."
-          }
-        ]);
-
-        setCompletedEvaluations([
-          {
-            id: 101,
-            teamName: "CloudNinjas",
-            projectName: "Cloud Optimization Tool",
-            score: 85,
-            evaluatedAt: "2026-02-10T11:00:00Z",
-            feedback: "Great innovation and presentation. Consider improving documentation."
-          },
-          {
-            id: 102,
-            teamName: "MobileFirst",
-            projectName: "Health Tracking App",
-            score: 78,
-            evaluatedAt: "2026-02-09T16:30:00Z",
-            feedback: "Good feasibility but needs more market research."
-          },
-          {
-            id: 103,
-            teamName: "BlockChainers",
-            projectName: "Supply Chain Tracker",
-            score: 92,
-            evaluatedAt: "2026-02-08T10:15:00Z",
-            feedback: "Excellent work! Very innovative solution with strong impact."
-          }
-        ]);
-
-        setLoading(false);
-      }, 800);
+      const res = await fetch("/api/judge/submissions");
+      if (res.ok) {
+        const data = await res.json();
+        setSubmissions(data.pending || []);
+        setCompletedEvaluations(data.completed || []);
+      }
     } catch (error) {
       console.error("Error fetching judge data:", error);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (status === "authenticated" && user?.id) {
-      fetchJudgeData(user.id);
+    if (status === "authenticated") {
+      fetchJudgeData();
     } else if (status !== "loading") {
       setLoading(false);
     }
@@ -150,29 +82,38 @@ export default function JudgeDashboard() {
   const handleSubmitScore = async () => {
     if (!selectedSubmission) return;
 
+    setIsSubmitting(true);
     const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
 
-    // Create completed evaluation
-    const newEvaluation = {
-      // eslint-disable-next-line react-hooks/purity
-      id: Date.now(),
-      teamName: selectedSubmission.teamName,
-      projectName: selectedSubmission.projectName,
-      score: totalScore,
-      evaluatedAt: new Date().toISOString(),
-      feedback: feedback
-    };
+    try {
+      const res = await fetch(`/api/submissions/${selectedSubmission.id}/evaluate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          score: totalScore,
+          feedback,
+          criteriaScores: scores
+        }),
+      });
 
-    // Remove from pending
-    setSubmissions(submissions.filter(s => s.id !== selectedSubmission.id));
-    // Add to completed
-    setCompletedEvaluations([newEvaluation, ...completedEvaluations]);
-
-    showNotification("Score submitted successfully!", "success");
-    setShowScoreModal(false);
-    setScores({ innovation: 0, feasibility: 0, presentation: 0, impact: 0, documentation: 0 });
-    setFeedback("");
-    setSelectedSubmission(null);
+      if (res.ok) {
+        showNotification("Score submitted successfully!", "success");
+        setShowScoreModal(false);
+        setScores({ innovation: 0, feasibility: 0, presentation: 0, impact: 0, documentation: 0 });
+        setFeedback("");
+        setSelectedSubmission(null);
+        // Refresh data
+        fetchJudgeData();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || "Failed to submit score", "error");
+      }
+    } catch (error) {
+      console.error("Error submitting evaluation:", error);
+      showNotification("Failed to submit score", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const showNotification = (message, type) => {
