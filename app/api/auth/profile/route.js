@@ -42,7 +42,7 @@ export async function GET() {
 // UPDATE user profile
 export async function PUT(request) {
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
-  const { isRateLimited } = limiter.check(10, ip); // 10 requests per minute per IP
+  const { isRateLimited } = limiter.check(10, ip);
 
   if (isRateLimited) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -59,6 +59,7 @@ export async function PUT(request) {
 
     const userId = session.user.id;
     const body = await request.json();
+
     const validation = profileSchema.safeParse(body);
 
     if (!validation.success) {
@@ -74,6 +75,7 @@ export async function PUT(request) {
     if (name) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (avatar !== undefined) updateData.avatar = avatar;
+    if (body.avatarUrl !== undefined) updateData.avatarUrl = body.avatarUrl;
 
     const user = await User.findByIdAndUpdate(
       userId,

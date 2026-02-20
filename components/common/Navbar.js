@@ -75,16 +75,27 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
-                <span className="text-sm font-medium text-slate-400">
-                  {session.user?.name}
-                </span>
-                <Link
-                  href="/profile"
-                  className="p-2 text-slate-400 hover:text-neon-cyan hover:bg-white/5 rounded-lg transition cursor-pointer"
-                  title="View Profile"
-                >
-                  <UserCircle className="w-5 h-5" />
-                </Link>
+                {session.user?.avatarUrl ? (
+                  <Link
+                    href="/profile"
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/10 hover:border-neon-cyan/50 transition"
+                    title="View Profile"
+                  >
+                    <img
+                      src={session.user.avatarUrl}
+                      alt={session.user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/profile"
+                    className="w-9 h-9 rounded-full bg-gradient-to-br from-neon-cyan to-neon-violet flex items-center justify-center text-white font-bold text-sm border-2 border-white/10 hover:border-neon-cyan/50 transition"
+                    title="View Profile"
+                  >
+                    {session.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </Link>
+                )}
                 <Button
                   variant="secondary"
                   className="text-slate-300 flex items-center gap-2 border-white/10 hover:border-neon-cyan/40 bg-white/5 hover:bg-white/10"

@@ -12,6 +12,10 @@ const UserSchema = new mongoose.Schema(
         },
         bio: String,
         avatar: String,
+        avatarUrl: {
+            type: String,
+            default: ""
+        },
 
         // Profile Info
         skills: [String],
