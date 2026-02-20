@@ -1,11 +1,8 @@
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db-connect";
 import Certificate from "@/models/Certificate";
 import Event from "@/models/Event";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 
 import PDFDocument from "pdfkit";
 import fs from "fs";

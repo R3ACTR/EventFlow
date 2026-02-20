@@ -1,11 +1,8 @@
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/db-connect";
 import Event from "@/models/Event";
-import { auth } from "@/lib/auth";
+import { auth } from "@/auth";
 
 export async function POST(req, { params }) {
   try {
