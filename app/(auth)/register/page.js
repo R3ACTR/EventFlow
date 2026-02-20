@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Aurora from "@/components/common/Aurora";
+import { getPasswordStrength } from "@/utils/passwordStrength";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -205,3 +206,4 @@ export default function RegisterPage() {
     </main>
   );
 }
+
