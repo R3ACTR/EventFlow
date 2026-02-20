@@ -63,6 +63,9 @@ export default function RegisterPage() {
       });
     }
   };
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  
 
   return (
     <main className="bg-space-900 relative min-h-screen">
@@ -206,4 +209,5 @@ export default function RegisterPage() {
     </main>
   );
 }
+
 
