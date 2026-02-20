@@ -3,29 +3,24 @@ import dbConnect from "@/lib/db-connect";
 import Team from "@/models/Team";
 import User from "@/models/User";
 import Event from "@/models/Event";
-import { auth } from "@/auth";
-import { z } from "zod";
-import { rateLimit } from "@/lib/rate-limit";
-
-const limiter = rateLimit({
-    interval: 60 * 1000, // 1 minute
-});
-
-const teamSchema = z.object({
-  name: z.string().min(1, "Team name is required").trim(),
-  eventId: z.string().min(1, "Please select an event for your team"),
-  inviteCode: z.string().optional(),
-  description: z.string().optional(),
-  maxMembers: z.number().int().positive().optional().default(5),
-});
+import mongoose from "mongoose";
+import { auth } from "@/lib/auth";
 
 // GET all teams
 export async function GET(request) {
   try {
     await dbConnect();
-    const session = await auth();
-    let userId = session?.user?.id;
-    
+    const { searchParams } = new URL(request.url);
+    let userId = searchParams.get('userId');
+
+    // If no userId in query params, try to get from session
+    if (!userId) {
+      const session = await auth();
+      if (session?.user?.id) {
+        userId = session.user.id;
+      }
+    }
+
     let query = {};
     if (userId) {
       // Find teams where user is leader or member
@@ -36,13 +31,13 @@ export async function GET(request) {
         ]
       };
     }
-    
+
     const teams = await Team.find(query)
       .populate('leader', 'name email role')
       .populate('members', 'name email role')
       .populate('event', 'title startDate endDate description')
       .sort({ createdAt: -1 });
-    
+
     return NextResponse.json({ teams });
   } catch (error) {
     console.error("Error fetching teams:", error);
@@ -61,126 +56,70 @@ export async function POST(request) {
 
   try {
     await dbConnect();
-    const session = await auth();
-    
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    const validation = teamSchema.safeParse(body);
+    let { name, description, eventId, leaderId, inviteCode, maxMembers } = body;
 
-    if (!validation.success) {
+    // If no eventId is provided, find the latest active event
+    if (!eventId) {
+      const latestEvent = await mongoose.models.Event.findOne({
+        endDate: { $gte: new Date() }
+      }).sort({ startDate: 1 });
+
+      if (latestEvent) {
+        eventId = latestEvent._id;
+      } else {
+        // Fallback to any event if no active ones
+        const anyEvent = await mongoose.models.Event.findOne().sort({ createdAt: -1 });
+        if (anyEvent) eventId = anyEvent._id;
+      }
+    }
+
+    if (!eventId) {
       return NextResponse.json(
-        { error: "Invalid input", details: validation.error.format() },
+        { error: "No active event found to join" },
         { status: 400 }
       );
     }
-    
-    const { name, eventId, inviteCode, description, maxMembers } = validation.data;
-    const leaderId = session.user.id;
-    
-    // Validate user exists and is a participant
-    const user = await User.findById(leaderId);
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-    
-    // Only participants can create teams
-    if (user.role !== 'participant') {
-      return NextResponse.json(
-        { error: "Only participants can create teams" },
-        { status: 403 }
-      );
-    }
-    
-    // Validate event exists
-    const event = await Event.findById(eventId);
-    if (!event) {
-      return NextResponse.json(
-        { error: "Event not found" },
-        { status: 404 }
-      );
-    }
-    
-    // Check if event registration is still open
-    const now = new Date();
-    if (event.registrationDeadline && now > new Date(event.registrationDeadline)) {
-      return NextResponse.json(
-        { error: "Event registration has ended" },
-        { status: 400 }
-      );
-    }
-    
-    // Check if user already has a team for this specific event
-    const existingTeamForEvent = await Team.findOne({
+
+    // Check if user already has a team
+    // Check if user already has a team FOR THIS SPECIFIC EVENT
+    const existingTeam = await Team.findOne({
       event: eventId,
       $or: [
         { leader: leaderId },
         { members: leaderId }
       ]
     });
-    
-    if (existingTeamForEvent) {
-      return NextResponse.json(
-        { error: "You already have a team for this event" },
-        { status: 400 }
-      );
-    }
-    
-    // Check if user is already in any team (global check)
-    const existingTeam = await Team.findOne({
-      $or: [
-        { leader: leaderId },
-        { members: leaderId }
-      ]
-    });
-    
+
     if (existingTeam) {
       return NextResponse.json(
-        { error: "You are already in a team. Leave your current team first." },
+        { error: "You are already in a team for this event" },
         { status: 400 }
       );
     }
-    
+
     // Generate unique invite code
-    let finalInviteCode = inviteCode || Math.random().toString(36).substring(2, 10).toUpperCase();
-    
-    // Check if invite code already exists
-    const existingInviteCode = await Team.findOne({ inviteCode: finalInviteCode });
-    if (existingInviteCode) {
-      // Generate a new one if collision
-      finalInviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-    }
-    
+    const generatedInviteCode = inviteCode || Math.random().toString(36).substring(2, 10).toUpperCase();
+
     const team = await Team.create({
       name: name,
       description: description || "",
       event: eventId,
       leader: leaderId,
-      members: [],
-      inviteCode: finalInviteCode,
-      maxMembers: maxMembers,
+      members: [leaderId],
+      inviteCode: generatedInviteCode,
+      maxMembers: maxMembers || 4, // Default max size
       status: "active",
       isVerified: false
     });
-    
-    await team.populate('leader', 'name email role');
-    await team.populate('event', 'title startDate endDate description');
-    
-    return NextResponse.json({ 
-      message: "Team created successfully!",
-      team 
-    }, { status: 201 });
+
+    await team.populate('leader', 'name email');
+    await team.populate('event', 'title startDate endDate');
+
+    return NextResponse.json({ team });
   } catch (error) {
     console.error("Error creating team:", error);
-    
+
     // Handle mongoose validation errors
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(e => e.message);
@@ -189,7 +128,7 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    
+
     // Handle duplicate key errors
     if (error.code === 11000) {
       return NextResponse.json(
@@ -197,7 +136,7 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json({ error: "Failed to create team" }, { status: 500 });
   }
 }

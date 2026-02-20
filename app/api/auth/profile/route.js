@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db-connect";
 import User from "@/models/User";
-import { auth } from "@/auth";
-import { z } from "zod";
-import { rateLimit } from "@/lib/rate-limit";
-
-const limiter = rateLimit({
-    interval: 60 * 1000, // 1 minute
-});
-
-const profileSchema = z.object({
-  name: z.string().min(1, "Name is required").optional(),
-  bio: z.string().max(500, "Bio exceeds 500 characters").optional(),
-  avatar: z.string().url("Invalid avatar URL").optional().or(z.literal("")),
-});
+import { auth } from "@/lib/auth";
 
 // GET current user profile
 export async function GET() {

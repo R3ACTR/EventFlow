@@ -23,6 +23,10 @@ const AnnouncementSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

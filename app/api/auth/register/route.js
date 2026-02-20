@@ -13,7 +13,7 @@ const registerSchema = z.object({
     name: z.string().min(2).max(50),
     email: z.string().email(),
     password: z.string().min(8).max(100),
-    role: z.enum(["participant", "mentor", "judge"]).optional(),
+    role: z.enum(["admin", "organizer", "participant", "mentor", "judge"]).optional(),
 });
 
 export async function POST(request) {
@@ -29,6 +29,7 @@ export async function POST(request) {
         const validation = registerSchema.safeParse(body);
 
         if (!validation.success) {
+            console.error("Validation failed:", validation.error.format());
             return NextResponse.json({ error: "Invalid input", details: validation.error.format() }, { status: 400 });
         }
 

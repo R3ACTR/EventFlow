@@ -1,16 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db-connect";
 import Announcement from "@/models/Announcement";
-import { auth } from "@/auth";
-import { z } from "zod";
-
-const announcementSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  message: z.string().min(1, "Message is required"),
-  roleTarget: z.enum(["all", "participants", "judges", "mentors"]).optional(),
-  isActive: z.boolean().optional(),
-  expiresAt: z.string().or(z.date()).optional().nullable().transform((val) => val ? new Date(val) : null),
-});
+import { auth } from "@/lib/auth";
 
 /* GET — Fetch active announcements */
 export async function GET() {

@@ -7,11 +7,19 @@ const UserSchema = new mongoose.Schema(
         password: { type: String, required: true },
         role: {
             type: String,
-            enum: ["admin", "participant", "mentor", "judge"],
+            enum: ["admin", "organizer", "participant", "mentor", "judge"],
             default: "participant",
         },
         bio: String,
         avatar: String,
+
+        // Profile Info
+        skills: [String],
+        socialLinks: {
+            github: String,
+            linkedin: String,
+            website: String,
+        },
     },
     { timestamps: true }
 );

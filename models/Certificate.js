@@ -25,7 +25,7 @@ const CertificateSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["participant", "winner", "mentor", "organizer"],
+      enum: ["participant", "winner", "mentor", "organizer","judge"],
       default: "participant",
     },
 

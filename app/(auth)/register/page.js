@@ -1,53 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import Aurora from "@/components/common/Aurora";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
-import { validateRegister } from "@/utils/validateRegister";
-
-const styles = {
-  label: {
-    display: "block",
-    fontSize: "12px",
-    fontWeight: "600",
-    color: "rgba(255, 255, 255, 0.8)",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    marginBottom: "8px",
-  },
-};
-
-function InputField({ label, type, name, value, onChange, disabled, placeholder, error }) {
-  return (
-    <div style={{ marginBottom: "20px" }}>
-      <label style={styles.label} htmlFor={name}>
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        required
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/40 transition"
-        style={{
-          border: error ? "1px solid #ef4444" : undefined
-        }}
-        placeholder={placeholder}
-      />
-      {error && (
-        <p style={{ color: "#f87171", fontSize: "12px", marginTop: "6px" }}>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+import Aurora from "@/components/common/Aurora";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -64,34 +22,16 @@ export default function RegisterPage() {
     success: "",
     loading: false,
   });
-  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [e.target.name]: e.target.value,
     }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const validationErrors = validateRegister(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setErrors({});
     setStatus({ error: "", success: "", loading: true });
 
     try {
@@ -109,7 +49,7 @@ export default function RegisterPage() {
 
       setStatus({
         error: "",
-        success: "Registration successful! Redirecting to login...",
+        success: "Registration successful! Redirecting...",
         loading: false,
       });
 
@@ -157,53 +97,75 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <InputField
-              label="Full Name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={status.loading}
-              placeholder="Enter your name"
-              error={errors.name}
-            />
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-            <InputField
-              label="Email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={status.loading}
-              placeholder="Enter your email"
-              error={errors.email}
-            />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Enter your name"
+                />
+              </div>
 
-            <InputField
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              disabled={status.loading}
-              placeholder="Create a password"
-              error={errors.password}
-            />
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Enter your email"
+                />
+              </div>
 
-            <div style={{ marginBottom: "24px" }}>
-              <label style={styles.label}>I am a</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                disabled={status.loading}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/40 transition"
-              >
-                <option value="participant">Participant</option>
-                <option value="mentor">Mentor</option>
-                <option value="judge">Judge</option>
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition"
+                  placeholder="Create a password"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  I am a
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  disabled={status.loading}
+                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200 focus:outline-none focus:border-neon-cyan/50 focus:ring-1 focus:ring-neon-cyan/50 transition appearance-none"
+                >
+                  <option value="participant" className="bg-space-900 text-slate-200">Participant</option>
+                  <option value="organizer" className="bg-space-900 text-slate-200">Organizer</option>
+                  <option value="mentor" className="bg-space-900 text-slate-200">Mentor</option>
+                  <option value="judge" className="bg-space-900 text-slate-200">Judge</option>
+                  <option value="admin" className="bg-space-900 text-slate-200">Admin</option>
+                </select>
+              </div>
             </div>
 
             {status.error && (
@@ -213,7 +175,7 @@ export default function RegisterPage() {
             )}
 
             {status.success && (
-              <div className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center mb-4">
+              <div className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
                 {status.success}
               </div>
             )}
@@ -236,6 +198,7 @@ export default function RegisterPage() {
                 Sign In
               </Link>
             </div>
+
           </form>
         </div>
       </section>

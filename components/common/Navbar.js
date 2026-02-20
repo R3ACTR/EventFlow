@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Zap, Menu, X, LogOut, UserCircle } from "lucide-react";
 import Button from "./Button";
 import { useSession, signOut } from "next-auth/react";
@@ -10,31 +10,10 @@ import { useTheme } from "@/context/ThemeContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  
-  const sessionResult = useSession();
-  const session = sessionResult?.data;
-  
+  const { data: session } = useSession();
+
   const { darkMode, toggleTheme } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/[0.06] h-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-violet rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white tracking-wider">EventFlow</span>
-          </Link>
-        </div>
-      </nav>
-    );
-  }
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -80,6 +59,14 @@ export default function Navbar() {
             >
               Verify Certificate
             </Link>
+            {session && (
+              <Link
+                href={`/${session.user?.role || "participant"}`}
+                className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+              >
+                Dashboard
+              </Link>
+            )}
 
 
           </div>
@@ -162,6 +149,15 @@ export default function Navbar() {
               >
                 Browse Events
               </Link>
+              {session && (
+                <Link
+                  href={`/${session.user?.role || "participant"}`}
+                  className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              )}
               <div className="pt-3 space-y-2 px-4">
                 {session ? (
                   <>
@@ -188,12 +184,12 @@ export default function Navbar() {
                       <Button variant="secondary" className="w-full justify-center text-slate-300 border-white/10 bg-white/5">
                         Login
                       </Button>
-                  <button
-  onClick={toggleTheme}
-  className="px-3 py-1 border rounded"
->
-  {darkMode ? "Light Mode" : "Dark Mode"}
-</button>
+                      <button
+                        onClick={toggleTheme}
+                        className="px-3 py-1 border rounded"
+                      >
+                        {darkMode ? "Light Mode" : "Dark Mode"}
+                      </button>
 
                     </Link>
                     <Link href="/register" className="block">
