@@ -7,7 +7,10 @@ import { auth } from "@/lib/auth";
 export async function GET(request) {
   try {
     const session = await auth();
-    await dbConnect();
+    const connected = await dbConnect();
+    if (!connected) {
+      return NextResponse.json({ events: [] }, { status: 200 }); // Graceful fallback
+    }
 
     // Default: Public upcoming/ongoing events
     let query = { isPublic: true, status: { $in: ["upcoming", "ongoing"] } };

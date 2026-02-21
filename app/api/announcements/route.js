@@ -6,7 +6,11 @@ import { auth } from "@/lib/auth";
 /* GET — Fetch active announcements */
 export async function GET() {
   try {
-    await dbConnect();
+    const connected = await dbConnect();
+    
+    if (!connected) {
+      return NextResponse.json([], { status: 200 }); // Return empty array if DB is not connected
+    }
 
     // Fetch active announcements that haven't expired
     const announcements = await Announcement.find({

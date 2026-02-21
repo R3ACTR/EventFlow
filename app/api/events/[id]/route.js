@@ -6,7 +6,16 @@ import { auth } from "@/lib/auth";
 export async function GET(request, { params }) {
     try {
         const { id } = await params;
-        await dbConnect();
+        
+        // Validate ID to prevent CastError
+        if (id === "0" || id.length !== 24) {
+            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        }
+
+        const connected = await dbConnect();
+        if (!connected) {
+            return NextResponse.json({ error: "Database connection failed" }, { status: 503 });
+        }
 
         const event = await Event.findById(id).populate("organizer", "name email");
 

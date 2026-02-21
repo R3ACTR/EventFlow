@@ -118,7 +118,7 @@ export default function EventDetailsPage() {
                             <span className="text-sm text-slate-500 font-medium">Share:</span>
                             <button
                                 onClick={handleCopyLink}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-slate-700 hover:border-indigo-400 hover:text-indigo-600 transition-colors shadow-sm"
                                 title="Copy link"
                             >
                                 {copiedLink ? <Check className="w-4 h-4 text-green-500" /> : <Link2 className="w-4 h-4" />}
@@ -126,7 +126,7 @@ export default function EventDetailsPage() {
                             </button>
                             <button
                                 onClick={handleShareTwitter}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:border-sky-400 hover:text-sky-500 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-slate-700 hover:border-sky-400 hover:text-sky-500 transition-colors shadow-sm"
                                 title="Share on Twitter/X"
                             >
                                 <Twitter className="w-4 h-4" />
@@ -134,7 +134,7 @@ export default function EventDetailsPage() {
                             </button>
                             <button
                                 onClick={handleShareLinkedIn}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:border-blue-600 hover:text-blue-700 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-slate-700 hover:border-blue-600 hover:text-blue-700 transition-colors shadow-sm"
                                 title="Share on LinkedIn"
                             >
                                 <Linkedin className="w-4 h-4" />
