@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Users, Trophy, ArrowRight, Star, MapPin, Search, FilterX } from "lucide-react";
+import { Calendar, Users, Trophy, ArrowRight, Star, MapPin, Search, FilterX, Twitter, Linkedin, Facebook, MessageCircle, Link2, Check } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Aurora from "@/components/common/Aurora";
 
@@ -43,6 +43,35 @@ export default function EventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [category, setCategory] = useState("");
     const [location, setLocation] = useState("");
+    const [copiedId, setCopiedId] = useState(null);
+
+    const handleCopyLink = (eventId) => {
+        const url = `${window.location.origin}/events/${eventId}`;
+        navigator.clipboard.writeText(url);
+        setCopiedId(eventId);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleShareTwitter = (event) => {
+        const text = encodeURIComponent(`Check out this event: ${event.title}`);
+        const url = encodeURIComponent(`${window.location.origin}/events/${event.id}`);
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+    };
+
+    const handleShareLinkedIn = (event) => {
+        const url = encodeURIComponent(`${window.location.origin}/events/${event.id}`);
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
+    };
+
+    const handleShareWhatsApp = (event) => {
+        const text = encodeURIComponent(`Check out this event: ${event.title} - ${window.location.origin}/events/${event.id}`);
+        window.open(`https://wa.me/?text=${text}`, "_blank");
+    };
+
+    const handleShareFacebook = (event) => {
+        const url = encodeURIComponent(`${window.location.origin}/events/${event.id}`);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+    };
 
     const clearFilters = () => {
         setSearchTerm("");
@@ -205,14 +234,53 @@ export default function EventsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Action Button */}
-                                    <Link
-                                        href={`/events/${event.id}`}
-                                        className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/5 text-white rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-white/20 group-hover:border-neon-cyan/30"
-                                    >
-                                        View Event
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </Link>
+                                    {/* Action Button & Share Icons */}
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center justify-center gap-3 pt-4 border-t border-white/5">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleCopyLink(event.id); }}
+                                                className={`p-2 rounded-lg border transition-all duration-300 ${copiedId === event.id ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400' : 'border-white/10 hover:border-white/30 text-slate-400 hover:text-white'}`}
+                                                title="Copy link"
+                                            >
+                                                {copiedId === event.id ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleShareTwitter(event); }}
+                                                className="p-2 rounded-lg border border-white/10 hover:border-sky-500/50 hover:bg-sky-500/10 text-slate-400 hover:text-sky-400 transition-all duration-300"
+                                                title="Share on Twitter"
+                                            >
+                                                <Twitter className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleShareLinkedIn(event); }}
+                                                className="p-2 rounded-lg border border-white/10 hover:border-blue-600/50 hover:bg-blue-600/10 text-slate-400 hover:text-blue-500 transition-all duration-300"
+                                                title="Share on LinkedIn"
+                                            >
+                                                <Linkedin className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleShareWhatsApp(event); }}
+                                                className="p-2 rounded-lg border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-500 transition-all duration-300"
+                                                title="Share on WhatsApp"
+                                            >
+                                                <MessageCircle className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleShareFacebook(event); }}
+                                                className="p-2 rounded-lg border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/10 text-slate-400 hover:text-blue-500 transition-all duration-300"
+                                                title="Share on Facebook"
+                                            >
+                                                <Facebook className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        <Link
+                                            href={`/events/${event.id}`}
+                                            className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-white/5 text-white rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-white/20 group-hover:border-neon-cyan/30"
+                                        >
+                                            View Event
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </Link>
+                                    </div>
                                 </div>
                             ))}
                         </div>

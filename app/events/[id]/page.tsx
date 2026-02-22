@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle } from "lucide-react";
 
 export default function EventDetailsPage() {
     const params = useParams();
@@ -38,6 +38,16 @@ export default function EventDetailsPage() {
     const handleShareLinkedIn = () => {
         const url = encodeURIComponent(window.location.href);
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank");
+    };
+
+    const handleShareWhatsApp = () => {
+        const text = encodeURIComponent(`Check out this event: ${event?.title} - ${window.location.href}`);
+        window.open(`https://wa.me/?text=${text}`, "_blank");
+    };
+
+    const handleShareFacebook = () => {
+        const url = encodeURIComponent(window.location.href);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
     };
 
     useEffect(() => {
@@ -139,6 +149,22 @@ export default function EventDetailsPage() {
                             >
                                 <Linkedin className="w-4 h-4" />
                                 LinkedIn
+                            </button>
+                            <button
+                                onClick={handleShareWhatsApp}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition-colors shadow-sm"
+                                title="Share on WhatsApp"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                WhatsApp
+                            </button>
+                            <button
+                                onClick={handleShareFacebook}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-white border border-slate-300 text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors shadow-sm"
+                                title="Share on Facebook"
+                            >
+                                <Facebook className="w-4 h-4" />
+                                Facebook
                             </button>
                         </div>
 
