@@ -1,12 +1,13 @@
-import React from "react";
+import React, { forwardRef } from "react";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-export default function Input({ error, className, ...props }: InputProps) {
+export default forwardRef<HTMLInputElement, InputProps>(function Input({ error, className, ...props }, ref) {
   return (
     <input
+      ref={ref}
       {...props}
       className={[
         "w-full px-3 py-2 rounded-lg border",
@@ -20,4 +21,4 @@ export default function Input({ error, className, ...props }: InputProps) {
       ].join(" ")}
     />
   );
-}
+});
