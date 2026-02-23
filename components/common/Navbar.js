@@ -1,18 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Zap, Menu, X, LogOut, UserCircle } from "lucide-react";
 import Button from "./Button";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "@/context/ThemeContext";
+import useFocusTrap from "./useFocusTrap";
+import { handleMenuKeyDown } from "./keyboardNavigation";
 
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session } = useSession();
-
   const { darkMode, toggleTheme } = useTheme();
+  const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
+
+  // Focus trap for mobile menu
+  useFocusTrap({
+    isOpen: isMenuOpen,
+    containerRef: menuRef,
+    onClose: () => setIsMenuOpen(false),
+    initialFocusRef: null,
+    triggerRef: menuButtonRef,
+  });
 
   // Debugging log for the browser
   if (typeof window !== "undefined" && session) {
@@ -22,6 +34,43 @@ export default function Navbar() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // Handle menu keyboard navigation
+  const handleMenuKeyDown = (e) => {
+    if (!menuRef.current) return;
+    
+    const menuItems = menuRef.current.querySelectorAll('[role="menuitem"]');
+    const currentIndex = Array.from(menuItems).findIndex(
+      (item) => item === document.activeElement || item.contains(document.activeElement)
+    );
+    
+    let newIndex = currentIndex;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        newIndex = Math.min(currentIndex + 1, menuItems.length - 1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        newIndex = Math.max(currentIndex - 1, 0);
+        break;
+      case 'Home':
+        e.preventDefault();
+        newIndex = 0;
+        break;
+      case 'End':
+        e.preventDefault();
+        newIndex = menuItems.length - 1;
+        break;
+      default:
+        return;
+    }
+    
+    if (menuItems[newIndex]) {
+      menuItems[newIndex].focus();
+    }
   };
 
   return (
@@ -39,35 +88,35 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8" role="navigation" aria-label="Main navigation">
             <Link
               href="/#features"
-              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
             >
               Features
             </Link>
             <Link
               href="/#benefits"
-              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
             >
               Why EventFlow
             </Link>
             <Link
               href="/events"
-              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
             >
               Browse Events
             </Link>
             <Link
               href="/verify"
-              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+              className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
             >
               Verify Certificate
             </Link>
             {session && (
               <Link
                 href={`/${session.user?.role || "participant"}`}
-                className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase"
+                className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
               >
                 Dashboard
               </Link>
@@ -132,9 +181,18 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
+            ref={menuButtonRef}
             onClick={toggleMenu}
-            className="md:hidden p-2 text-slate-400 hover:text-neon-cyan hover:bg-white/5 rounded-lg transition"
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown' && !isMenuOpen) {
+                e.preventDefault();
+                setIsMenuOpen(true);
+              }
+            }}
+            className="md:hidden p-2 text-slate-400 hover:text-neon-cyan hover:bg-white/5 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-neon-cyan"
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMenuOpen ? (
               <X className="w-6 h-6" />
@@ -146,25 +204,35 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden pb-4 pt-2 border-t border-white/[0.06]">
+          <div 
+            ref={menuRef}
+            id="mobile-menu"
+            className="md:hidden pb-4 pt-2 border-t border-white/[0.06]"
+            role="menu"
+            aria-label="Mobile navigation"
+            onKeyDown={handleMenuKeyDown}
+          >
             <div className="flex flex-col space-y-1">
               <Link
                 href="/#features"
-                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase"
+                role="menuitem"
+                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan focus:bg-white/5"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Features
               </Link>
               <Link
                 href="/#benefits"
-                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase"
+                role="menuitem"
+                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan focus:bg-white/5"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Why EventFlow
               </Link>
               <Link
                 href="/events"
-                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase"
+                role="menuitem"
+                className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan focus:bg-white/5"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Browse Events
@@ -172,7 +240,8 @@ export default function Navbar() {
               {session && (
                 <Link
                   href={`/${session.user?.role || "participant"}`}
-                  className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase"
+                  role="menuitem"
+                  className="text-slate-400 hover:text-neon-cyan hover:bg-white/5 px-4 py-2.5 rounded-lg transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan focus:bg-white/5"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard

@@ -15,7 +15,10 @@ export default function Button({ className, variant = "primary", ...props }) {
     return (
         <button
             className={cn(
-                "px-4 py-2 rounded-lg font-medium transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
+                "px-4 py-2 rounded-lg font-medium transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-2",
+                variant === "primary" ? "focus:ring-primary-500" : 
+                variant === "secondary" ? "focus:ring-slate-400" : 
+                "focus:ring-red-500",
                 variants[variant],
                 className
             )}

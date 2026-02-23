@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input, Label } from "@/components/ui/form";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import Link from "next/link";
+import useFocusTrap from "@/components/common/useFocusTrap";
+import { handleFormKeyDown } from "@/components/common/keyboardNavigation";
 
 export default function CreateEventPage() {
     const router = useRouter();
@@ -13,6 +15,18 @@ export default function CreateEventPage() {
     const [loading, setLoading] = useState(false);
     const [tracks, setTracks] = useState([]);
     const [trackInput, setTrackInput] = useState("");
+    const [error, setError] = useState("");
+
+    const formRef = useRef(null);
+    const titleInputRef = useRef(null);
+
+    // Focus trap for the form
+    useFocusTrap({
+        isOpen: true,
+        containerRef: formRef,
+        onClose: () => {},
+        initialFocusRef: titleInputRef,
+    });
 
     const [formData, setFormData] = useState({
         title: "",
@@ -49,6 +63,7 @@ export default function CreateEventPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError("");
 
         try {
             const res = await fetch("/api/events", {
@@ -66,15 +81,38 @@ export default function CreateEventPage() {
             if (res.ok) {
                 router.push("/organizer");
             } else {
-                const error = await res.json();
-                alert(error.error || "Failed to create event");
+                const errorData = await res.json();
+                setError(errorData.error || "Failed to create event");
             }
         } catch (error) {
             console.error("Error creating event:", error);
-            alert("Failed to create event");
+            setError("Failed to create event");
         } finally {
             setLoading(false);
         }
+    };
+
+    // Handle form keyboard navigation
+    const handleFormKeyDownEvent = (e) => {
+        handleFormKeyDown(e, {
+            onSubmit: handleSubmit,
+            onCancel: () => {
+                // Clear form on Escape
+                setFormData({
+                    title: "",
+                    description: "",
+                    startDate: "",
+                    endDate: "",
+                    registrationDeadline: "",
+                    minTeamSize: 2,
+                    maxTeamSize: 4,
+                    rules: "",
+                    isPublic: true
+                });
+                setTracks([]);
+            },
+            submitKey: 'Enter',
+        });
     };
 
     return (
@@ -84,7 +122,8 @@ export default function CreateEventPage() {
                 <div className="flex items-center gap-4 mb-10">
                     <Link
                         href="/organizer"
-                        className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm"
+                        className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-indigo-200 hover:text-indigo-600 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        aria-label="Back to organizer dashboard"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-500" />
                     </Link>
@@ -94,7 +133,14 @@ export default function CreateEventPage() {
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form 
+                    ref={formRef}
+                    onSubmit={handleSubmit} 
+                    onKeyDown={handleFormKeyDownEvent}
+                    className="space-y-8"
+                    role="form"
+                    aria-label="Create new event"
+                >
                     {/* Basic Info */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
                         <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
@@ -111,6 +157,7 @@ export default function CreateEventPage() {
                             <div>
                                 <Label className="mb-2 block text-sm font-semibold text-slate-700">Event Title <span className="text-red-500">*</span></Label>
                                 <Input
+                                    ref={titleInputRef}
                                     name="title"
                                     value={formData.title}
                                     onChange={handleChange}
@@ -248,7 +295,7 @@ export default function CreateEventPage() {
                                 <button
                                     type="button"
                                     onClick={handleAddTrack}
-                                    className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-2 font-medium"
+                                    className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors flex items-center gap-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                 >
                                     <Plus className="w-5 h-5" />
                                     Add Track
@@ -302,18 +349,29 @@ export default function CreateEventPage() {
                         </div>
                     </div>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div 
+                            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            {error}
+                        </div>
+                    )}
+
                     {/* Action Buttons */}
                     <div className="flex items-center justify-end gap-4 pt-4 pb-12">
                         <Link
                             href="/organizer"
-                            className="px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold transition-all shadow-sm"
+                            className="px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 font-semibold transition-all shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 font-semibold transition-all shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
                             {loading ? (
                                 <>
