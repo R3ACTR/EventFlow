@@ -66,7 +66,6 @@ export async function POST(request, { params }) {
 
         // Lazy migration: Ensure registrationDeadline exists before saving
         if (!event.registrationDeadline) {
-            console.log(`Auto-migrating registrationDeadline for event ${event._id} during judge assignment`);
             event.registrationDeadline = event.startDate || new Date();
         }
 

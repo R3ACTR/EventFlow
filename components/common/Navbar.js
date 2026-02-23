@@ -28,7 +28,6 @@ export default function Navbar() {
 
   // Debugging log for the browser
   if (typeof window !== "undefined" && session) {
-    // console.log("Navbar Session Data:", session.user);
   }
 
 

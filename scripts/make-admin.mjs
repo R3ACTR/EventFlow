@@ -10,24 +10,24 @@ if (!MONGODB_URI) {
 async function makeAdmin() {
   try {
     await mongoose.connect(MONGODB_URI);
-    console.log("Connected to MongoDB");
+    process.stdout.write("Connected to MongoDB\n");
 
     const username = "metrix"; 
     // Case-insensitive search for name
     const user = await User.findOne({ name: { $regex: new RegExp(`^${username}$`, "i") } });
 
     if (!user) {
-      console.log(`User "${username}" not found.`);
+      process.stdout.write(`User "${username}" not found.\n`);
       process.exit(1);
     }
 
     user.role = "admin";
     await user.save();
 
-    console.log(`Successfully updated user "${user.name}" (Email: ${user.email}) to role "admin".`);
+    process.stdout.write(`Successfully updated user "${user.name}" (Email: ${user.email}) to role "admin".\n`);
     
     await mongoose.disconnect();
-    console.log("Disconnected from MongoDB");
+    process.stdout.write("Disconnected from MongoDB\n");
   } catch (error) {
     console.error("Error updating user:", error);
     process.exit(1);

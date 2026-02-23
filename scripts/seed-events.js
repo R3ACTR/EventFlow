@@ -74,29 +74,28 @@ const demoEvents = [
 
 async function seedEvents() {
   try {
-    console.log("Connecting to MongoDB...");
+    process.stdout.write("Connecting to MongoDB...\n");
     await mongoose.connect(MONGODB_URI);
-    console.log("Connected to MongoDB");
+    process.stdout.write("Connected to MongoDB\n");
 
     // Check if events already exist
     const existingCount = await Event.countDocuments();
     if (existingCount > 0) {
-      console.log(`Found ${existingCount} existing events.`);
+      process.stdout.write(`Found ${existingCount} existing events.\n`);
       
       // Optionally clear existing events
       // await Event.deleteMany({});
-      // console.log("Cleared existing events");
     }
 
     // Create demo events
     const createdEvents = await Event.insertMany(demoEvents);
-    console.log(`Created ${createdEvents.length} demo events:`);
+    process.stdout.write(`Created ${createdEvents.length} demo events:\n`);
     
     createdEvents.forEach((event, index) => {
-      console.log(`  ${index + 1}. ${event.title} (${event.status})`);
+      process.stdout.write(`  ${index + 1}. ${event.title} (${event.status})\n`);
     });
 
-    console.log("\nSeed completed successfully!");
+    process.stdout.write("\nSeed completed successfully!\n");
     process.exit(0);
   } catch (error) {
     console.error("Error seeding events:", error);
