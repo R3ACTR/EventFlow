@@ -58,41 +58,70 @@ export async function POST(req) {
     // ensure folder exists
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
+    // Certificate settings (A4 Landscape)
     const doc = new PDFDocument({
       size: "A4",
       layout: "landscape",
-      margins: { top: 50, bottom: 50, left: 50, right: 50 }
+      margins: { top: 0, bottom: 0, left: 0, right: 0 }
     });
-
-    // ✅ IMPORTANT FIX → force built-in font
-    doc.font("Helvetica");
 
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
 
+    // ✅ IMPORTANT FIX → force built-in font
+    doc.font("Helvetica");
+
     /* =========================
-       CERTIFICATE DESIGN
+       CERTIFICATE DESIGN (DYNAMIC)
     ========================== */
 
-    doc.fontSize(30).text("Certificate of Participation", { align: "center" });
+    const template = event.certificateTemplate;
 
-    doc.moveDown();
-    doc.fontSize(18).text(
-      "This certificate is proudly presented to",
-      { align: "center" }
-    );
+    // 1. Background
+    if (template?.backgroundUrl) {
+      try {
+        if (template.backgroundUrl.startsWith('http')) {
+          const response = await fetch(template.backgroundUrl);
+          const buffer = await response.arrayBuffer();
+          doc.image(Buffer.from(buffer), 0, 0, { width: 841.89, height: 595.28 });
+        } else {
+          // Local path
+          const fullBgPath = path.join(process.cwd(), 'public', template.backgroundUrl);
+          if (fs.existsSync(fullBgPath)) {
+            doc.image(fullBgPath, 0, 0, { width: 841.89, height: 595.28 });
+          }
+        }
+      } catch (e) {
+        console.error("Error drawing background:", e);
+      }
+    }
 
-    doc.moveDown();
-    doc.fontSize(28).text(recipientName, { align: "center" });
+    // 2. Elements
+    if (template?.elements && template.elements.length > 0) {
+      template.elements.forEach(el => {
+        let text = el.content;
+        text = text.replace('{{RECIPIENT_NAME}}', recipientName);
+        text = text.replace('{{EVENT_TITLE}}', event.title);
+        text = text.replace('{{ROLE}}', role);
+        text = text.replace('{{DATE}}', new Date().toLocaleDateString());
 
-    doc.moveDown();
-    doc.fontSize(18).text(
-      `for participating in ${event.title}`,
-      { align: "center" }
-    );
-
-    doc.moveDown(2);
-    doc.fontSize(14).text(`Role: ${role}`, { align: "center" });
+        doc.fontSize(el.fontSize || 24)
+          .fillColor(el.color || '#000000')
+          .text(text, el.x, el.y, {
+            align: el.align || 'left',
+            width: el.align !== 'left' ? 400 : undefined // Give it some width for alignment to work if centered/right
+          });
+      });
+    } else {
+      // Fallback to legacy design if no template exists
+      doc.fontSize(30).text("Certificate of Participation", 0, 150, { align: "center" });
+      doc.moveDown();
+      doc.fontSize(18).text("This certificate is proudly presented to", { align: "center" });
+      doc.moveDown();
+      doc.fontSize(28).text(recipientName, { align: "center" });
+      doc.moveDown();
+      doc.fontSize(18).text(`for participating in ${event.title}`, { align: "center" });
+    }
 
     doc.end();
 

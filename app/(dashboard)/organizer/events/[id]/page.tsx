@@ -20,6 +20,7 @@ import {
     Clock
 } from "lucide-react";
 import AssignJudgesModal from "@/components/dashboards/organizer/AssignJudgesModal";
+import CertificateDesigner from "@/components/dashboards/organizer/CertificateDesigner";
 
 export default function EventDashboard() {
     const params = useParams(); // useParams returns a readonly object, not a Promise in Client Components
@@ -29,6 +30,14 @@ export default function EventDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
     const [showJudgeModal, setShowJudgeModal] = useState(false);
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const tab = searchParams.get("tab");
+        if (tab && ["overview", "teams", "judges", "certificates"].includes(tab)) {
+            setActiveTab(tab);
+        }
+    }, []);
     const [judges, setJudges] = useState([]);
     const [teams, setTeams] = useState([]);
     const [teamsLoading, setTeamsLoading] = useState(false);
@@ -152,7 +161,7 @@ export default function EventDashboard() {
 
                     {/* Tabs */}
                     <div className="flex gap-6 mt-4">
-                        {["overview", "teams", "judges"].map((tab) => (
+                        {["overview", "teams", "judges", "certificates"].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -398,6 +407,17 @@ export default function EventDashboard() {
                                 ))}
                             </div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === "certificates" && (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-slate-900">Certificate Designer</h2>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <CertificateDesigner event={event} onSave={fetchEventDetails} />
+                        </div>
                     </div>
                 )}
 

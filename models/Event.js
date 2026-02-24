@@ -59,6 +59,18 @@ const EventSchema = new mongoose.Schema(
             website: String,
             tier: { type: String, enum: ["platinum", "gold", "silver", "bronze"], default: "bronze" }
         }],
+        certificateTemplate: {
+            backgroundUrl: String,
+            elements: [{
+                type: { type: String, enum: ['text', 'image'], default: 'text' },
+                content: String, // e.g., "{{RECIPIENT_NAME}}"
+                x: Number,
+                y: Number,
+                fontSize: { type: Number, default: 24 },
+                color: { type: String, default: '#000000' },
+                align: { type: String, enum: ['left', 'center', 'right'], default: 'left' }
+            }]
+        }
 
     },
     { timestamps: true }

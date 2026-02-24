@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 export async function GET(request, { params }) {
     try {
         const { id } = await params;
-        
+
         // Validate ID to prevent CastError
         if (id === "0" || id.length !== 24) {
             return NextResponse.json({ error: "Event not found" }, { status: 404 });
@@ -27,6 +27,37 @@ export async function GET(request, { params }) {
     } catch (error) {
         console.error("Error fetching event details:", error);
         return NextResponse.json({ error: "Failed to fetch event" }, { status: 500 });
+    }
+}
+
+export async function PATCH(request, { params }) {
+    try {
+        const session = await auth();
+        const { id } = await params;
+
+        if (!session || (session.user.role !== "organizer" && session.user.role !== "admin")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        await dbConnect();
+        const body = await request.json();
+
+        const currentEvent = await Event.findById(id);
+        if (!currentEvent) {
+            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        }
+
+        // Check ownership
+        if (session.user.role !== "admin" && currentEvent.organizer.toString() !== session.user.id) {
+            return NextResponse.json({ error: "Unauthorized: You can only edit your own events" }, { status: 403 });
+        }
+
+        const event = await Event.findByIdAndUpdate(id, { $set: body }, { new: true });
+
+        return NextResponse.json({ event });
+    } catch (error) {
+        console.error("Error patching event:", error);
+        return NextResponse.json({ error: "Failed to update event" }, { status: 500 });
     }
 }
 
