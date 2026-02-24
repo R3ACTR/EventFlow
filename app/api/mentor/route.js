@@ -21,7 +21,7 @@ export async function GET(req) {
     const userId = session.user.id;
 
     // Fetch teams assigned to this mentor
-    const teams = await Team.find({ assignedMentor: userId, status: "active" })
+    const assignedTeams = await Team.find({ assignedMentor: userId, status: "active" })
       .populate("leader", "name email")
       .populate("members", "name email")
       .populate({
@@ -29,6 +29,22 @@ export async function GET(req) {
         select: "title startDate endDate status"
       })
       .sort({ updatedAt: -1 });
+
+    // Fetch teams that have requested mentor help but don't have one yet
+    const availableTeams = await Team.find({ 
+      mentorRequested: true,
+      assignedMentor: { $exists: false },
+      status: "active" 
+    })
+      .populate("leader", "name email")
+      .populate("members", "name email")
+      .populate({
+        path: "event",
+        select: "title startDate endDate status"
+      })
+      .sort({ updatedAt: -1 });
+
+    const teams = [...assignedTeams, ...availableTeams];
 
     // Get event IDs from teams for submissions query
     const teamIds = teams.map(t => t._id);

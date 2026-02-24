@@ -25,10 +25,17 @@ export default function OrganizerDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [showJudgeModal, setShowJudgeModal] = useState(false);
+    const [stats, setStats] = useState({
+        totalParticipants: 0,
+        totalTeams: 0,
+        totalSubmissions: 0,
+        avgTeamSize: 0
+    });
 
     useEffect(() => {
         if (session?.user?.role === 'organizer') {
             fetchMyEvents();
+            fetchStats();
         }
     }, [session]);
 
@@ -43,6 +50,23 @@ export default function OrganizerDashboard() {
             console.error("Error fetching events:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchStats = async () => {
+        try {
+            const res = await fetch("/api/organizer/stats");
+            if (res.ok) {
+                const data = await res.json();
+                setStats({
+                    totalParticipants: data.totalParticipants || 0,
+                    totalTeams: data.totalTeams || 0,
+                    totalSubmissions: data.totalSubmissions || 0,
+                    avgTeamSize: data.avgTeamSize || 0
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching stats:", error);
         }
     };
 
@@ -117,7 +141,7 @@ export default function OrganizerDashboard() {
                                 <Users className="w-5 h-5 text-emerald-600" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-slate-900">0</p>
+                        <p className="text-3xl font-bold text-slate-900">{stats.totalParticipants}</p>
                         <p className="text-xs text-slate-400 mt-1">Across all events</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
@@ -139,7 +163,7 @@ export default function OrganizerDashboard() {
                                 <BarChart className="w-5 h-5 text-purple-600" />
                             </div>
                         </div>
-                        <p className="text-3xl font-bold text-slate-900">5</p>
+                        <p className="text-3xl font-bold text-slate-900">{stats.avgTeamSize}</p>
                         <p className="text-xs text-slate-400 mt-1">Members per team</p>
                     </div>
                 </div>

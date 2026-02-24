@@ -37,7 +37,11 @@ export default function MentorDashboard() {
             const data = await res.json();
             
             if (data.success) {
-                setTeams(data.teams || []);
+                // Separate assigned teams from available teams
+                const assigned = (data.teams || []).filter(t => t.assignedMentor);
+                const available = (data.teams || []).filter(t => !t.assignedMentor && t.mentorRequested);
+                
+                setTeams({ assigned, available });
                 setEvents(data.events || []);
                 setSubmissions(data.submissions || []);
                 setStats(data.stats || {
@@ -53,6 +57,21 @@ export default function MentorDashboard() {
             setError(err.message || "Failed to load dashboard data");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const claimTeam = async (teamId) => {
+        try {
+            const res = await fetch("/api/mentor/teams", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ teamId })
+            });
+            if (res.ok) {
+                fetchMentorData(); // Refresh the data
+            }
+        } catch (err) {
+            console.error("Error claiming team:", err);
         }
     };
 
@@ -200,21 +219,68 @@ export default function MentorDashboard() {
                     
                     {/* Teams Section */}
                     <div className="lg:col-span-2">
+                        {/* Available Teams to Claim */}
+                        {teams.available && teams.available.length > 0 && (
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-blue-50">
+                                    <h3 className="text-lg font-semibold text-slate-900">Teams Needing Mentors</h3>
+                                    <span className="text-sm text-slate-500">{teams.available.length} available</span>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                    {teams.available.map((team) => (
+                                        <div key={team._id} className="p-6 hover:bg-slate-50 transition-colors">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <h4 className="font-semibold text-slate-900">{team.name || "Unnamed Team"}</h4>
+                                                        {team.event && (
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(team.event.status)}`}>
+                                                                {team.event.status}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 mt-1">
+                                                        {team.event?.title || "No event assigned"}
+                                                    </p>
+                                                    <p className="text-sm text-amber-600 mt-1">
+                                                        {team.mentorRequestMessage || "Requested mentor help"}
+                                                    </p>
+                                                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                                                        <span className="flex items-center gap-1">
+                                                            <Users className="w-4 h-4" />
+                                                            {getTeamMemberCount(team)} member{getTeamMemberCount(team) !== 1 ? 's' : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => claimTeam(team._id)}
+                                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                                                >
+                                                    Claim Team
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Assigned Teams */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-slate-900">Your Teams</h3>
-                                <span className="text-sm text-slate-500">{teams.length} team{teams.length !== 1 ? 's' : ''}</span>
+                                <h3 className="text-lg font-semibold text-slate-900">Your Assigned Teams</h3>
+                                <span className="text-sm text-slate-500">{teams.assigned?.length || 0} team{(teams.assigned?.length || 0) !== 1 ? 's' : ''}</span>
                             </div>
 
-                            {teams.length === 0 ? (
+                            {(!teams.assigned || teams.assigned.length === 0) ? (
                                 <div className="p-8 text-center">
                                     <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                                     <p className="text-slate-500 mb-2">No teams assigned yet.</p>
-                                    <p className="text-sm text-slate-400">Contact an event organizer to be assigned to teams.</p>
+                                    <p className="text-sm text-slate-400">Claim teams above that need mentors.</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-slate-100">
-                                    {teams.map((team) => (
+                                    {teams.assigned.map((team) => (
                                         <div key={team._id} className="p-6 hover:bg-slate-50 transition-colors">
                                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                                 <div className="flex-1">

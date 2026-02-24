@@ -16,6 +16,8 @@ const TeamSchema = new mongoose.Schema(
         isLookingForMembers: { type: Boolean, default: true },
         pendingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Users asking to join
         assignedMentor: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Mentor guiding this team
+        mentorRequested: { type: Boolean, default: false }, // Team requested mentor help
+        mentorRequestMessage: { type: String }, // Message to mentors
     },
     { timestamps: true }
 );
