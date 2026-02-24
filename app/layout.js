@@ -1,7 +1,7 @@
 import "./globals.css";
 import Providers from "./providers";
 import GlobalAnnouncements from "@/components/GlobalAnnouncements";
-
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 export const metadata = {
   title: "EventFlow – Modular Hackathon Infra System",
@@ -17,6 +17,7 @@ export default function RootLayout({ children }) {
       >
         <Providers>
           <GlobalAnnouncements />
+          <Breadcrumbs />
           {children}
         </Providers>
       </body>

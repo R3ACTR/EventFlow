@@ -7,16 +7,13 @@ import Link from "next/link";
 import { ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Aurora from "@/components/common/Aurora";
-import { getPasswordStrength } from "@/utils/passwordStrength";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
-    role: "participant",
   });
 
   const [status, setStatus] = useState({
@@ -27,51 +24,47 @@ export default function RegisterPage() {
 
   const [socialLoading, setSocialLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus({ error: "", success: "", loading: true });
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        const message =
-          data?.message ||
-          data?.error ||
-          "Registration failed. Please try again.";
-        throw new Error(message);
+      if (res?.error) {
+        throw new Error("Invalid credentials. Please check your email and password.");
       }
 
       setStatus({
         error: "",
-        success: "Registration successful! Redirecting...",
+        success: "Login successful! Redirecting...",
         loading: false,
       });
 
-      setTimeout(() => router.push("/login"), 1500);
-    } catch (err) {
+      // The middleware or auth config usually handles role-based routing
+      // If not, we can push to a generic dashboard or let it refresh
+      router.push("/participant");
+      router.refresh();
+
+    } catch (err: any) {
       setStatus({
-        error: err?.message || "Something went wrong during registration.",
+        error: err?.message || "Something went wrong during login.",
         success: "",
         loading: false,
       });
     }
   };
-
-  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <main className="bg-space-900 relative min-h-screen">
@@ -98,10 +91,10 @@ export default function RegisterPage() {
 
             <div className="text-center">
               <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
-                Create Account
+                Welcome Back
               </h2>
               <p className="text-slate-400 text-sm font-mono">
-                Join EventFlow and start organizing
+                Log in to EventFlow to manage your events
               </p>
             </div>
           </div>
@@ -110,25 +103,9 @@ export default function RegisterPage() {
             onSubmit={handleSubmit}
             className="space-y-6"
             role="form"
-            aria-label="Registration form"
+            aria-label="Login form"
           >
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={status.loading}
-                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200"
-                  placeholder="Enter your name"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   Email
@@ -157,44 +134,20 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   disabled={status.loading}
                   className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200"
-                  placeholder="Create a password"
+                  placeholder="Enter your password"
                 />
-              </div>
-
-              {formData.password && (
-                <p className="text-sm text-green-400">
-                  Strength: {passwordStrength.label}
-                </p>
-              )}
-
-              <div>
-                <label
-                  className="block text-sm font-medium text-slate-300 mb-1"
-                  title={`Organizer: Creates and manages events
-Mentor: Guides participants
-Judge: Evaluates submissions`}
-                >
-                  I am a
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  disabled={status.loading}
-                  className="w-full bg-space-800 border border-white/10 rounded-lg px-4 py-3 text-slate-200"
-                >
-                  <option value="participant">Participant</option>
-                  <option value="organizer">Organizer</option>
-                  <option value="mentor">Mentor</option>
-                  <option value="judge">Judge</option>
-                  <option value="admin">Admin</option>
-                </select>
               </div>
             </div>
 
             {status.error && (
               <div className="text-red-400 text-sm text-center">
                 {status.error}
+              </div>
+            )}
+
+            {status.success && (
+              <div className="text-green-400 text-sm text-center">
+                {status.success}
               </div>
             )}
 
@@ -211,10 +164,10 @@ Judge: Evaluates submissions`}
               {status.loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating account...
+                  Logging in...
                 </>
               ) : (
-                "Sign Up"
+                "Sign In"
               )}
               {!status.loading && <ArrowRight className="w-4 h-4" />}
             </button>
@@ -230,7 +183,7 @@ Judge: Evaluates submissions`}
                 title={socialLoading ? "Signing in..." : undefined}
                 className="w-full px-6 py-3 rounded-xl bg-white text-black font-semibold text-sm disabled:opacity-60"
               >
-                Sign up with Google
+                Sign in with Google
               </button>
 
               <button
@@ -243,14 +196,14 @@ Judge: Evaluates submissions`}
                 title={socialLoading ? "Signing in..." : undefined}
                 className="w-full px-6 py-3 rounded-xl bg-[#24292e] text-white font-semibold text-sm disabled:opacity-60"
               >
-                Sign up with GitHub
+                Sign in with GitHub
               </button>
             </div>
 
             <div className="mt-6 text-center text-sm text-slate-500">
-              Already have an account?{" "}
-              <Link href="/login" className="text-neon-cyan">
-                Sign In
+              Don't have an account?{" "}
+              <Link href="/register" className="text-neon-cyan">
+                Sign Up
               </Link>
             </div>
           </form>
