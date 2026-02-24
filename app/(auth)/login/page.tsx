@@ -41,17 +41,23 @@ export default function LoginPage() {
         password,
         redirect: false,
       });
+if (result?.error) {
+  const message =
+    result.error === "CredentialsSignin"
+      ? "Invalid email or password."
+      : result.error;
 
-      if (result?.error) {
-        setError("Invalid credentials");
-      } else {
+  setError(message);
+} else {
         const session = await getSession();
         const role = session?.user?.role || "participant";
         router.push(`/${role}`);
       }
-    } catch {
-      setError("Something went wrong.");
-    } finally {
+    } catch (err) {
+  setError(
+    err?.message || "Something went wrong while signing in."
+  );
+} finally {
       setLoading(false);
     }
   };

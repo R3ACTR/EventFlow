@@ -21,7 +21,10 @@ export async function POST(request) {
     const { isRateLimited } = limiter.check(5, ip); // 5 requests per minute per IP
 
     if (isRateLimited) {
-        return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+        return NextResponse.json(
+            { message: "Too many requests. Please try again later." },
+            { status: 429 }
+        );
     }
 
     try {
@@ -30,7 +33,13 @@ export async function POST(request) {
 
         if (!validation.success) {
             console.error("Validation failed:", validation.error.format());
-            return NextResponse.json({ error: "Invalid input", details: validation.error.format() }, { status: 400 });
+            return NextResponse.json(
+                {
+                    message: "Invalid input provided",
+                    details: validation.error.format(),
+                },
+                { status: 400 }
+            );
         }
 
         const { name, email, password, role } = validation.data;
@@ -40,8 +49,10 @@ export async function POST(request) {
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return NextResponse.json({ error: "User already exists" }, { status: 400 });
-        }
+return NextResponse.json(
+  { message: "User already exists" },
+  { status: 400 }
+);        }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -61,9 +72,9 @@ export async function POST(request) {
     } catch (error) {
         console.error("REGISTER ERROR FULL:", error);
         return NextResponse.json(
-            { error: "Registration failed" },
-            { status: 500 }
-        );
+  { message: "Internal server error during registration" },
+  { status: 500 }
+);
     }
 
 }

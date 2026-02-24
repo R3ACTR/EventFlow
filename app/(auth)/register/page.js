@@ -51,9 +51,14 @@ export default function RegisterPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Registration failed");
-      }
+if (!res.ok) {
+  const message =
+    data?.message ||
+    data?.error ||
+    "Registration failed. Please try again.";
+
+  throw new Error(message);
+}
 
       setStatus({
         error: "",
@@ -63,12 +68,12 @@ export default function RegisterPage() {
 
       setTimeout(() => router.push("/login"), 1500);
     } catch (err) {
-      setStatus({
-        error: err.message || "Something went wrong.",
-        success: "",
-        loading: false,
-      });
-    }
+  setStatus({
+    error: err?.message || "Something went wrong during registration.",
+    success: "",
+    loading: false,
+  });
+}
   };
 
   // Handle form keyboard navigation
