@@ -26,7 +26,7 @@ export default function RegisterPage() {
     success: "",
     loading: false,
   });
-
+  const [socialLoading, setSocialLoading] = useState(false);
   const formRef = useRef(null);
   const nameInputRef = useRef(null);
 
@@ -51,14 +51,14 @@ export default function RegisterPage() {
 
       const data = await res.json();
 
-if (!res.ok) {
-  const message =
-    data?.message ||
-    data?.error ||
-    "Registration failed. Please try again.";
+      if (!res.ok) {
+        const message =
+          data?.message ||
+          data?.error ||
+          "Registration failed. Please try again.";
 
-  throw new Error(message);
-}
+        throw new Error(message);
+      }
 
       setStatus({
         error: "",
@@ -68,12 +68,12 @@ if (!res.ok) {
 
       setTimeout(() => router.push("/login"), 1500);
     } catch (err) {
-  setStatus({
-    error: err?.message || "Something went wrong during registration.",
-    success: "",
-    loading: false,
-  });
-}
+      setStatus({
+        error: err?.message || "Something went wrong during registration.",
+        success: "",
+        loading: false,
+      });
+    }
   };
 
   // Handle form keyboard navigation
@@ -98,7 +98,7 @@ if (!res.ok) {
   useFocusTrap({
     isOpen: true,
     containerRef: formRef,
-    onClose: () => {},
+    onClose: () => { },
     initialFocusRef: nameInputRef,
   });
 
@@ -138,9 +138,9 @@ if (!res.ok) {
             </div>
           </div>
 
-          <form 
+          <form
             ref={formRef}
-            onSubmit={handleSubmit} 
+            onSubmit={handleSubmit}
             onKeyDown={handleFormKeyDownEvent}
             className="space-y-6"
             role="form"
@@ -249,14 +249,14 @@ if (!res.ok) {
               )}
 
               <div>
-               <label
-  className="block text-sm font-medium text-slate-300 mb-1"
-  title={`Organizer: Creates and manages events
+                <label
+                  className="block text-sm font-medium text-slate-300 mb-1"
+                  title={`Organizer: Creates and manages events
 Mentor: Guides participants
 Judge: Evaluates submissions`}
->
-  I am a
-</label>
+                >
+                  I am a
+                </label>
                 <select
                   name="role"
                   value={formData.role}
@@ -274,7 +274,7 @@ Judge: Evaluates submissions`}
             </div>
 
             {status.error && (
-              <div 
+              <div
                 id="register-error"
                 className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center mb-4"
                 role="alert"
@@ -285,7 +285,7 @@ Judge: Evaluates submissions`}
             )}
 
             {status.success && (
-              <div 
+              <div
                 id="register-success"
                 className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center"
                 role="status"
@@ -295,15 +295,15 @@ Judge: Evaluates submissions`}
               </div>
             )}
 
-<button
-  type="submit"
-  disabled={status.loading}
-  title={
-    status.loading
-      ? "Please wait..."
-      : "Please fill all required fields"
-  }
-  className="btn-neon w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide text-sm focus:outline-none focus:ring-2 focus:ring-neon-cyan focus:ring-offset-2 focus:ring-offset-space-900"
+            <button
+              type="submit"
+              disabled={status.loading}
+              title={
+                status.loading
+                  ? "Please wait..."
+                  : "Please fill all required fields"
+              }
+              className="btn-neon w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide text-sm focus:outline-none focus:ring-2 focus:ring-neon-cyan focus:ring-offset-2 focus:ring-offset-space-900"
 
               aria-describedby={status.loading ? "submitting-status" : undefined}
             >
@@ -321,8 +321,14 @@ Judge: Evaluates submissions`}
             <div className="mt-6 flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => signIn("google", { callbackUrl: "/participant" })}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition shadow-lg shadow-white/5 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-space-900"
+                onClick={() => {
+                  setSocialLoading(true);
+                  signIn("google", { callbackUrl: "/participant" });
+                }}
+                disabled={socialLoading}
+                title={socialLoading ? "Signing in..." : undefined}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition disabled:opacity-60 disabled:cursor-not-allowed"
+
                 aria-label="Sign up with Google"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" aria-hidden="true" />
@@ -331,8 +337,14 @@ Judge: Evaluates submissions`}
 
               <button
                 type="button"
-                onClick={() => signIn("github", { callbackUrl: "/participant" })}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-[#24292e] text-white font-semibold text-sm hover:bg-[#2c3238] transition shadow-lg shadow-black/20 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-space-900"
+                onClick={() => {
+                  setSocialLoading(true);
+                  signIn("github", { callbackUrl: "/participant" });
+                }}
+                disabled={socialLoading}
+                title={socialLoading ? "Signing in..." : undefined}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-[#24292e] text-white font-semibold text-sm hover:bg-[#2c3238] transition disabled:opacity-60 disabled:cursor-not-allowed"
+
                 aria-label="Sign up with GitHub"
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">

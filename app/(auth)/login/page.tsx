@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
   const router = useRouter();
   const formRef = useRef(null);
   const emailInputRef = useRef(null);
@@ -26,7 +27,7 @@ export default function LoginPage() {
   useFocusTrap({
     isOpen: true,
     containerRef: formRef,
-    onClose: () => {}, // No-op for page-level forms
+    onClose: () => { }, // No-op for page-level forms
     initialFocusRef: emailInputRef,
   });
 
@@ -41,23 +42,23 @@ export default function LoginPage() {
         password,
         redirect: false,
       });
-if (result?.error) {
-  const message =
-    result.error === "CredentialsSignin"
-      ? "Invalid email or password."
-      : result.error;
+      if (result?.error) {
+        const message =
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password."
+            : result.error;
 
-  setError(message);
-} else {
+        setError(message);
+      } else {
         const session = await getSession();
         const role = session?.user?.role || "participant";
         router.push(`/${role}`);
       }
     } catch (err) {
-  setError(
-    err?.message || "Something went wrong while signing in."
-  );
-} finally {
+      setError(
+        err?.message || "Something went wrong while signing in."
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -110,9 +111,9 @@ if (result?.error) {
               </p>
             </div>
           </div>
-          <form 
+          <form
             ref={formRef}
-            onSubmit={handleSubmit} 
+            onSubmit={handleSubmit}
             onKeyDown={onFormKeyDown}
             className="space-y-6"
             role="form"
@@ -149,8 +150,8 @@ if (result?.error) {
             </FormField>
 
             {error && (
-              <div 
-                id="login-error" 
+              <div
+                id="login-error"
                 className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center"
                 role="alert"
                 aria-live="polite"
@@ -159,15 +160,15 @@ if (result?.error) {
               </div>
             )}
 
-           <button
-  type="submit"
-  disabled={loading}
-  title={
-    loading
-      ? "Signing in..."
-      : "Please fill all required fields"
-  }
-  className="btn-neon w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide text-sm"
+            <button
+              type="submit"
+              disabled={loading}
+              title={
+                loading
+                  ? "Signing in..."
+                  : "Please fill all required fields"
+              }
+              className="btn-neon w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold tracking-wide text-sm"
 
               aria-describedby={loading ? "submitting-status" : undefined}
             >
@@ -178,8 +179,14 @@ if (result?.error) {
 
           <div className="mt-6 flex flex-col gap-3">
             <button
-              onClick={() => signIn("google", { callbackUrl: "/participant" })}
-              className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition shadow-lg shadow-white/5 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-space-900"
+              onClick={() => {
+                setSocialLoading(true);
+                signIn("google", { callbackUrl: "/participant" });
+              }}
+              disabled={socialLoading}
+              title={socialLoading ? "Signing in..." : undefined}
+              className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-white text-black font-semibold text-sm hover:bg-slate-100 transition shadow-lg shadow-white/5 disabled:opacity-60 disabled:cursor-not-allowed"
+
               aria-label="Sign in with Google"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" aria-hidden="true" />
@@ -187,8 +194,14 @@ if (result?.error) {
             </button>
 
             <button
-              onClick={() => signIn("github", { callbackUrl: "/participant" })}
-              className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-[#24292e] text-white font-semibold text-sm hover:bg-[#2c3238] transition shadow-lg shadow-black/20 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-space-900"
+              onClick={() => {
+                setSocialLoading(true);
+                signIn("github", { callbackUrl: "/participant" });
+              }}
+              disabled={socialLoading}
+              title={socialLoading ? "Signing in..." : undefined}
+              className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-[#24292e] text-white font-semibold text-sm hover:bg-[#2c3238] transition disabled:opacity-60 disabled:cursor-not-allowed"
+
               aria-label="Sign in with GitHub"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
