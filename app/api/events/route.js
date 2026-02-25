@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db-connect";
 import Event from "@/models/Event";
 import { auth } from "@/lib/auth";
+import { eventSchema } from "@/lib/validation";
 
 // GET all events
 export async function GET(request) {
@@ -9,20 +10,16 @@ export async function GET(request) {
     const session = await auth();
     const connected = await dbConnect();
     if (!connected) {
-      return NextResponse.json({ events: [] }, { status: 200 }); // Graceful fallback
+      return NextResponse.json({ events: [] }, { status: 200 });
     }
 
-    // Build query based on user role
     let query = {};
     const userRole = session?.user?.role;
     const userId = session?.user?.id;
 
-    // Admin sees all events
     if (userRole === "admin") {
       query = {};
-    }
-    // Organizer sees their events + public events
-    else if (userRole === "organizer") {
+    } else if (userRole === "organizer") {
       const { searchParams } = new URL(request.url);
       const view = searchParams.get("view");
       if (view === "mine") {
@@ -35,31 +32,27 @@ export async function GET(request) {
           ]
         };
       }
-    }
-    // Judge sees public events + assigned events
-    else if (userRole === "judge") {
+    } else if (userRole === "judge") {
       query = {
         $or: [
           { isPublic: true, status: { $in: ["upcoming", "ongoing"] } },
           { judges: userId }
         ]
       };
-    }
-    // Mentor sees public events + assigned events
-    else if (userRole === "mentor") {
+    } else if (userRole === "mentor") {
       query = {
         $or: [
           { isPublic: true, status: { $in: ["upcoming", "ongoing"] } },
           { mentors: userId }
         ]
       };
-    }
-    // Everyone else (participant or no role) sees public upcoming/ongoing events
-    else {
+    } else {
       query = { isPublic: true, status: { $in: ["upcoming", "ongoing"] } };
     }
 
+    // Optimization: Return only necessary fields for list views
     const events = await Event.find(query)
+      .select("title description startDate endDate registrationDeadline location status isPublic maxTeamSize organizer")
       .populate("organizer", "name email")
       .sort({ startDate: 1 });
 
@@ -75,7 +68,6 @@ export async function POST(request) {
   try {
     const session = await auth();
 
-    // Authorization check
     if (!session || (session.user.role !== "organizer" && session.user.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -83,43 +75,20 @@ export async function POST(request) {
     await dbConnect();
     const body = await request.json();
 
-    // Destructure all possible fields
-    const {
-      title,
-      description,
-      startDate,
-      endDate,
-      registrationDeadline,
-      location,
-      minTeamSize,
-      maxTeamSize,
-      tracks,
-      rules,
-      judges,
-      mentors,
-      isPublic
-    } = body;
-
-    // Basic validation
-    if (!title || !description || !startDate || !endDate || !registrationDeadline) {
-      return NextResponse.json({ error: "Missing required fields (title, description, startDate, endDate, registrationDeadline)" }, { status: 400 });
+    // Automated Data Validation with Zod
+    const validation = eventSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({
+        error: "Validation failed",
+        details: validation.error.format()
+      }, { status: 400 });
     }
 
+    const validatedData = validation.data;
+
     const event = await Event.create({
-      title,
-      description,
-      startDate,
-      endDate,
-      registrationDeadline,
-      location: location || "Virtual",
+      ...validatedData,
       organizer: session.user.id,
-      minTeamSize: minTeamSize || 2,
-      maxTeamSize: maxTeamSize || 4,
-      tracks: tracks || [],
-      rules: rules || [],
-      judges: judges || [],
-      mentors: mentors || [],
-      isPublic: isPublic !== undefined ? isPublic : true,
       status: "upcoming"
     });
 
@@ -129,3 +98,4 @@ export async function POST(request) {
     return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
   }
 }
+

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -14,13 +14,18 @@ import {
     Settings,
     ChevronRight,
     BarChart,
-    Gavel // Added icon for judges
+    Gavel
 } from "lucide-react";
-import AssignJudgesModal from "@/components/dashboards/organizer/AssignJudgesModal";
+import OrganizerJudgeManager from "@/components/dashboards/organizer/OrganizerJudgeManager";
+import EmptyState from "@/components/common/EmptyState";
+import { Analytics } from "@/lib/analytics";
+import { Cache } from "@/lib/cache";
+
 
 export default function OrganizerDashboard() {
     const { data: session } = useSession();
     const user = session?.user;
+    const isMounted = useRef(true);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -33,37 +38,57 @@ export default function OrganizerDashboard() {
     });
 
     useEffect(() => {
+        isMounted.current = true;
         if (session?.user?.role === 'organizer') {
             fetchMyEvents();
             fetchStats();
         }
+        return () => {
+            isMounted.current = false;
+        };
     }, [session]);
 
     const fetchMyEvents = async () => {
+        // Load from cache first for instant feedback
+        const cachedEvents = Cache.get('my_events');
+        if (cachedEvents && isMounted.current) {
+            setEvents(cachedEvents);
+            setLoading(false);
+        }
+
         try {
             const res = await fetch("/api/events?view=mine");
-            if (res.ok) {
+            if (res.ok && isMounted.current) {
                 const data = await res.json();
-                setEvents(data.events || []);
+                const fetchedEvents = data.events || [];
+                setEvents(fetchedEvents);
+                Cache.set('my_events', fetchedEvents);
             }
         } catch (error) {
             console.error("Error fetching events:", error);
         } finally {
-            setLoading(false);
+            if (isMounted.current) setLoading(false);
         }
     };
 
     const fetchStats = async () => {
+        const cachedStats = Cache.get('organizer_stats');
+        if (cachedStats && isMounted.current) {
+            setStats(cachedStats);
+        }
+
         try {
             const res = await fetch("/api/organizer/stats");
-            if (res.ok) {
+            if (res.ok && isMounted.current) {
                 const data = await res.json();
-                setStats({
+                const fetchedStats = {
                     totalParticipants: data.totalParticipants || 0,
                     totalTeams: data.totalTeams || 0,
                     totalSubmissions: data.totalSubmissions || 0,
                     avgTeamSize: data.avgTeamSize || 0
-                });
+                };
+                setStats(fetchedStats);
+                Cache.set('organizer_stats', fetchedStats);
             }
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -178,19 +203,14 @@ export default function OrganizerDashboard() {
                     </div>
 
                     {events.length === 0 ? (
-                        <div className="p-16 text-center">
-                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Calendar className="w-10 h-10 text-slate-300" />
-                            </div>
-                            <h3 className="text-xl font-semibold text-slate-900 mb-2">No events created yet</h3>
-                            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Get started by creating your first hackathon and inviting participants.</p>
-                            <Link
-                                href="/organizer/events/create"
-                                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-                            >
-                                <Plus className="w-5 h-5" />
-                                Create Event
-                            </Link>
+                        <div className="p-8">
+                            <EmptyState
+                                icon={Calendar}
+                                title="No events created yet"
+                                description="Get started by creating your first hackathon and inviting participants. Your events will appear here once you create them."
+                                actionText="Create New Event"
+                                actionLink="/organizer/events/create"
+                            />
                         </div>
                     ) : (
                         <div className="divide-y divide-slate-100">
@@ -245,7 +265,7 @@ export default function OrganizerDashboard() {
                 {/* Modals */}
                 {
                     showJudgeModal && selectedEvent && (
-                        <AssignJudgesModal
+                        <OrganizerJudgeManager
                             event={selectedEvent}
                             onClose={() => {
                                 setShowJudgeModal(false);
@@ -258,3 +278,4 @@ export default function OrganizerDashboard() {
         </div >
     );
 }
+
