@@ -5,15 +5,25 @@ import Submission from "@/models/Submission";
 import User from "@/models/User";
 import Event from "@/models/Event";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+const limiter = rateLimit({ interval: 60000 }); // 1 minute window
 
 export async function GET(request) {
   try {
-    await dbConnect();
     const session = await auth();
     
     if (!session || session.user.role !== 'organizer') {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Rate limit per user (10 requests per minute)
+    const { isRateLimited } = limiter.check(10, session.user.id);
+    if (isRateLimited) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
+    await dbConnect();
 
     const userId = session.user.id;
 
