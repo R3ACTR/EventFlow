@@ -12,6 +12,7 @@ import { handleMenuKeyDown } from "./keyboardNavigation";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const { data: session } = useSession();
   const { darkMode, toggleTheme } = useTheme();
   const menuRef = useRef(null);
@@ -38,14 +39,14 @@ export default function Navbar() {
   // Handle menu keyboard navigation
   const handleMenuKeyDown = (e) => {
     if (!menuRef.current) return;
-    
+
     const menuItems = menuRef.current.querySelectorAll('[role="menuitem"]');
     const currentIndex = Array.from(menuItems).findIndex(
       (item) => item === document.activeElement || item.contains(document.activeElement)
     );
-    
+
     let newIndex = currentIndex;
-    
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -66,7 +67,7 @@ export default function Navbar() {
       default:
         return;
     }
-    
+
     if (menuItems[newIndex]) {
       menuItems[newIndex].focus();
     }
@@ -128,7 +129,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
-                {(session.user?.image || session.user?.avatarUrl) ? (
+                {(session.user?.image || session.user?.avatarUrl) && !imgError ? (
                   <Link
                     href="/profile"
                     className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/10 hover:border-neon-cyan/50 transition"
@@ -138,9 +139,10 @@ export default function Navbar() {
                       src={session.user.image || session.user.avatarUrl}
                       alt={session.user.name || "User"}
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         console.error("Navbar Image Load Error:", e);
-                        e.target.style.display = 'none';
+                        setImgError(true);
                       }}
                     />
                   </Link>
@@ -203,7 +205,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div 
+          <div
             ref={menuRef}
             id="mobile-menu"
             className="md:hidden pb-4 pt-2 border-t border-white/[0.06]"

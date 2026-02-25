@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db-connect";
 import User from "@/models/User";
 import { auth } from "@/lib/auth";
+import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 1 minute
+});
+
+const profileSchema = z.object({
+  name: z.string().min(2).max(50).optional(),
+  bio: z.string().max(500).optional(),
+  avatar: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  socialLinks: z.object({
+    github: z.string().optional(),
+    linkedin: z.string().optional(),
+    website: z.string().optional()
+  }).optional()
+});
 
 // GET current user profile
 export async function GET() {
@@ -42,7 +61,7 @@ export async function PUT(request) {
   const { isRateLimited } = limiter.check(10, ip);
 
   if (isRateLimited) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
@@ -65,14 +84,16 @@ export async function PUT(request) {
         { status: 400 }
       );
     }
-    
-    const { name, bio, avatar } = validation.data;
+
+    const { name, bio, avatar, skills, socialLinks } = validation.data;
 
     const updateData = {};
     if (name) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (avatar !== undefined) updateData.avatar = avatar;
     if (body.avatarUrl !== undefined) updateData.avatarUrl = body.avatarUrl;
+    if (skills !== undefined) updateData.skills = skills;
+    if (socialLinks !== undefined) updateData.socialLinks = socialLinks;
 
     const user = await User.findByIdAndUpdate(
       userId,
