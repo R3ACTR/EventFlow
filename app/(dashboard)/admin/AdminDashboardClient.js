@@ -61,6 +61,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   ),
+  Activity: () => (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h4l3-7 4 14 3-7h4" />
+    </svg>
+  ),
 };
 
 // Role badge colors
@@ -92,6 +97,26 @@ export default function AdminDashboardClient({ user }) {
     roleDistribution: {},
     eventStatusDistribution: {},
   });
+  const [analytics, setAnalytics] = useState({
+    totals: {
+      events: 0,
+      teams: 0,
+      submissions: 0,
+      participants: 0,
+      activeEvents: 0,
+      upcomingEvents: 0,
+    },
+    distributions: {
+      events: {},
+      submissions: {},
+    },
+    trends: {
+      participants: [],
+      teams: [],
+    },
+    generatedAt: null,
+  });
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   // Events State
   const [events, setEvents] = useState([]);
@@ -150,6 +175,13 @@ export default function AdminDashboardClient({ user }) {
     }
   }, [activeTab, userRoleFilter, userPagination.page]);
 
+  useEffect(() => {
+    if (activeTab !== "analytics") return undefined;
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 30000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
   // Debounced search for users
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -194,6 +226,21 @@ export default function AdminDashboardClient({ user }) {
       console.error("Error fetching stats:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    setLoadingAnalytics(true);
+    try {
+      const res = await fetch("/api/admin/analytics");
+      if (res.ok) {
+        const data = await res.json();
+        setAnalytics(data);
+      }
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    } finally {
+      setLoadingAnalytics(false);
     }
   };
 
@@ -449,13 +496,15 @@ export default function AdminDashboardClient({ user }) {
     }
   };
 
+  const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value || 0);
+
   // Render stat card
-  const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
+  const StatCard = ({ title, value, icon: Icon, color, subtext, isLoading }) => (
     <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:border-slate-600/50 transition-all duration-300">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-slate-400 text-sm font-medium mb-1">{title}</p>
-          <p className="text-3xl font-bold text-white">{loading ? "..." : value}</p>
+          <p className="text-3xl font-bold text-white">{isLoading ? "..." : formatNumber(value)}</p>
           {subtext && <p className="text-xs text-slate-500 mt-2">{subtext}</p>}
         </div>
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
@@ -487,6 +536,83 @@ export default function AdminDashboardClient({ user }) {
     </div>
   );
 
+  const ChartCard = ({ title, subtitle, children }) => (
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        {subtitle && <p className="text-slate-400 text-sm mt-1">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+
+  const BarChart = ({ data, height = 160 }) => {
+    const maxValue = Math.max(1, ...data.map((item) => item.value));
+    return (
+      <div className="space-y-4">
+        <div className="flex items-end gap-3" style={{ height }}>
+          {data.map((item) => {
+            const barHeight = Math.round((item.value / maxValue) * 100);
+            return (
+              <div key={item.label} className="flex-1 flex flex-col items-center gap-2">
+                <div className="text-xs text-slate-400">{formatNumber(item.value)}</div>
+                <div className="w-full bg-slate-700/50 rounded-lg overflow-hidden flex items-end" style={{ height: height - 40 }}>
+                  <div
+                    className={`${item.color || "bg-indigo-500"} w-full transition-all duration-300`}
+                    style={{ height: `${barHeight}%` }}
+                  />
+                </div>
+                <div className="text-xs text-slate-400 text-center">{item.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const LineChart = ({ data }) => {
+    const width = 320;
+    const height = 120;
+    const padding = 16;
+    const maxValue = Math.max(1, ...data.map((item) => item.value));
+    const step = data.length > 1 ? (width - padding * 2) / (data.length - 1) : 0;
+    const points = data
+      .map((item, index) => {
+        const x = padding + step * index;
+        const y = height - padding - (item.value / maxValue) * (height - padding * 2);
+        return `${x},${y}`;
+      })
+      .join(" ");
+
+    return (
+      <div className="space-y-4">
+        <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
+          <polyline
+            fill="none"
+            stroke="rgb(99 102 241)"
+            strokeWidth="2"
+            points={points}
+          />
+          {data.map((item, index) => {
+            const x = padding + step * index;
+            const y = height - padding - (item.value / maxValue) * (height - padding * 2);
+            return <circle key={item.label} cx={x} cy={y} r="3" fill="rgb(99 102 241)" />;
+          })}
+        </svg>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-400">
+          {data.map((item) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span>{item.label}</span>
+              <span className="ml-auto text-slate-500">{formatNumber(item.value)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const roleDistributionColors = {
     admin: "bg-red-500",
     organizer: "bg-purple-500",
@@ -502,8 +628,29 @@ export default function AdminDashboardClient({ user }) {
     draft: "bg-yellow-500",
   };
 
+  const eventStatusOrder = ["draft", "upcoming", "ongoing", "completed"];
+  const submissionStatusOrder = ["pending", "accepted", "rejected"];
+
+  const analyticsEventChart = eventStatusOrder.map((status) => ({
+    label: status,
+    value: analytics.distributions.events?.[status] || 0,
+    color: eventStatusColors[status],
+  }));
+
+  const analyticsSubmissionChart = submissionStatusOrder.map((status) => ({
+    label: status,
+    value: analytics.distributions.submissions?.[status] || 0,
+    color:
+      status === "accepted"
+        ? "bg-emerald-500"
+        : status === "rejected"
+          ? "bg-rose-500"
+          : "bg-amber-500",
+  }));
+
   const tabs = [
     { id: "overview", label: "Overview", icon: Icons.Chart },
+    { id: "analytics", label: "Analytics", icon: Icons.Activity },
     { id: "users", label: "Users", icon: Icons.Users },
     { id: "events", label: "Events", icon: Icons.Calendar },
     { id: "announcements", label: "Announcements", icon: Icons.Megaphone },
@@ -568,6 +715,7 @@ export default function AdminDashboardClient({ user }) {
               icon={Icons.Users} 
               color="bg-blue-500/20 text-blue-400"
               subtext="Registered users"
+              isLoading={loading}
             />
             <StatCard 
               title="Total Events" 
@@ -575,6 +723,7 @@ export default function AdminDashboardClient({ user }) {
               icon={Icons.Calendar} 
               color="bg-purple-500/20 text-purple-400"
               subtext="All events"
+              isLoading={loading}
             />
             <StatCard 
               title="Active Announcements" 
@@ -582,6 +731,7 @@ export default function AdminDashboardClient({ user }) {
               icon={Icons.Megaphone} 
               color="bg-amber-500/20 text-amber-400"
               subtext="Published"
+              isLoading={loading}
             />
             <StatCard 
               title="Admin" 
@@ -589,6 +739,7 @@ export default function AdminDashboardClient({ user }) {
               icon={Icons.Shield} 
               color="bg-red-500/20 text-red-400"
               subtext="Administrators"
+              isLoading={loading}
             />
           </div>
 
@@ -629,6 +780,79 @@ export default function AdminDashboardClient({ user }) {
                 <Icons.Users /> Manage Users
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === "analytics" && (
+        <div
+          className="space-y-6 animate-fadeIn"
+          role="tabpanel"
+          id="admin-tabpanel-analytics"
+          aria-labelledby="admin-tab-analytics"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Event Analytics</h2>
+              <p className="text-slate-400 text-sm">Track participation and activity across events.</p>
+            </div>
+            <div className="text-xs text-slate-500">
+              Last updated: {analytics.generatedAt ? new Date(analytics.generatedAt).toLocaleTimeString() : "—"}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Participants"
+              value={analytics.totals.participants}
+              icon={Icons.Users}
+              color="bg-blue-500/20 text-blue-400"
+              subtext="Total registered"
+              isLoading={loadingAnalytics}
+            />
+            <StatCard
+              title="Teams"
+              value={analytics.totals.teams}
+              icon={Icons.Shield}
+              color="bg-emerald-500/20 text-emerald-400"
+              subtext="Active teams"
+              isLoading={loadingAnalytics}
+            />
+            <StatCard
+              title="Submissions"
+              value={analytics.totals.submissions}
+              icon={Icons.Megaphone}
+              color="bg-amber-500/20 text-amber-400"
+              subtext="Total entries"
+              isLoading={loadingAnalytics}
+            />
+            <StatCard
+              title="Active Events"
+              value={analytics.totals.activeEvents}
+              icon={Icons.Calendar}
+              color="bg-purple-500/20 text-purple-400"
+              subtext={`Upcoming: ${formatNumber(analytics.totals.upcomingEvents)}`}
+              isLoading={loadingAnalytics}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Event Status Distribution" subtitle="Event pipeline across the platform.">
+              <BarChart data={analyticsEventChart} />
+            </ChartCard>
+            <ChartCard title="Submission Outcomes" subtitle="Acceptance rates across events.">
+              <BarChart data={analyticsSubmissionChart} />
+            </ChartCard>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Participant Growth" subtitle="Last 6 months of participant registrations.">
+              <LineChart data={analytics.trends.participants} />
+            </ChartCard>
+            <ChartCard title="Team Creation" subtitle="Teams formed in the last 6 months.">
+              <LineChart data={analytics.trends.teams} />
+            </ChartCard>
           </div>
         </div>
       )}

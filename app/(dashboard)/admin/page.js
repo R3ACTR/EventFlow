@@ -10,6 +10,9 @@ export default async function AdminPage() {
   if (!session) {
     redirect("/login");
   }
+  if (session.user?.role !== "admin") {
+    redirect(`/${session.user?.role || "participant"}`);
+  }
 
   return <AdminDashboardClient user={session.user} />;
 }
