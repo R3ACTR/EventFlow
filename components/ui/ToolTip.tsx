@@ -25,11 +25,15 @@ export default function Tooltip({ content, children }: TooltipProps) {
 
   return (
     <div
-      className="relative inline-block"
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-      onFocus={showTooltip}
-      onBlur={hideTooltip}
+     <div
+  className="relative inline-block"
+  onMouseEnter={showTooltip}
+  onMouseLeave={hideTooltip}
+  onFocus={showTooltip}
+  onBlur={hideTooltip}
+  onTouchStart={showTooltip}
+  onTouchEnd={hideTooltip}
+>
     >
       {children}
 
