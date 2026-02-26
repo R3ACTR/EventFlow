@@ -74,7 +74,18 @@ const EventSchema = new mongoose.Schema(
                 color: { type: String, default: '#000000' },
                 align: { type: String, enum: ['left', 'center', 'right'], default: 'left' }
             }]
-        }
+        },
+
+        // FAQ Section
+        faqs: [{
+            question: { type: String, required: true },
+            answer: { type: String, required: true },
+            category: { 
+                type: String, 
+                enum: ['general', 'registration', 'submission', 'judging', 'prizes'], 
+                default: 'general' 
+            }
+        }]
 
     },
     { timestamps: true }

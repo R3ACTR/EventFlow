@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input, Label } from "@/components/ui/form";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function EditEventPage() {
@@ -16,6 +16,8 @@ export default function EditEventPage() {
     const [submitting, setSubmitting] = useState(false);
     const [tracks, setTracks] = useState([]);
     const [trackInput, setTrackInput] = useState("");
+    const [faqs, setFaqs] = useState([]);
+    const [newFaq, setNewFaq] = useState({ question: "", answer: "", category: "general" });
 
     const [formData, setFormData] = useState({
         title: "",
@@ -60,6 +62,7 @@ export default function EditEventPage() {
                     isPublic: event.isPublic
                 });
                 setTracks(event.tracks || []);
+                setFaqs(event.faqs || []);
             } else {
                 router.push("/organizer");
             }
@@ -89,6 +92,52 @@ export default function EditEventPage() {
 
     const handleRemoveTrack = (index) => {
         setTracks(tracks.filter((_, i) => i !== index));
+    };
+
+    const handleAddFaq = async () => {
+        if (!newFaq.question.trim() || !newFaq.answer.trim()) {
+            alert("Please fill in both question and answer");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/events/${id}/faqs`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newFaq)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFaqs(data.faqs || []);
+                setNewFaq({ question: "", answer: "", category: "general" });
+            } else {
+                const error = await res.json();
+                alert(error.error || "Failed to add FAQ");
+            }
+        } catch (error) {
+            console.error("Error adding FAQ:", error);
+            alert("Failed to add FAQ");
+        }
+    };
+
+    const handleDeleteFaq = async (index) => {
+        try {
+            const res = await fetch(`/api/events/${id}/faqs?index=${index}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFaqs(data.faqs || []);
+            } else {
+                const error = await res.json();
+                alert(error.error || "Failed to delete FAQ");
+            }
+        } catch (error) {
+            console.error("Error deleting FAQ:", error);
+            alert("Failed to delete FAQ");
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -352,6 +401,100 @@ export default function EditEventPage() {
                                 placeholder={"1. No cross-team collaboration\n2. All code must be written during the event\n3. Respect the code of conduct"}
                             />
                         </div>
+                    </div>
+
+                    {/* FAQs */}
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
+                            <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+                                <HelpCircle className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900">FAQ Section</h2>
+                                <p className="text-sm text-slate-500">Add frequently asked questions for participants</p>
+                            </div>
+                        </div>
+
+                        {/* Add new FAQ form */}
+                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
+                            <h3 className="font-semibold text-slate-800">Add New FAQ</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="md:col-span-2">
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Question</Label>
+                                    <Input
+                                        value={newFaq.question}
+                                        onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
+                                        placeholder="e.g., What is the maximum team size?"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Category</Label>
+                                    <select
+                                        value={newFaq.category}
+                                        onChange={(e) => setNewFaq({ ...newFaq, category: e.target.value })}
+                                        className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    >
+                                        <option value="general">General</option>
+                                        <option value="registration">Registration</option>
+                                        <option value="submission">Submission</option>
+                                        <option value="judging">Judging</option>
+                                        <option value="prizes">Prizes</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleAddFaq}
+                                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        Add FAQ
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <Label className="mb-2 block text-sm font-semibold text-slate-700">Answer</Label>
+                                <textarea
+                                    value={newFaq.answer}
+                                    onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
+                                    rows={2}
+                                    className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                    placeholder="Provide the answer to this question..."
+                                />
+                            </div>
+                        </div>
+
+                        {/* FAQ List */}
+                        {faqs.length === 0 ? (
+                            <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <HelpCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                                <p className="text-sm text-slate-500">No FAQs added yet. Add your first FAQ above.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {faqs.map((faq, index) => (
+                                    <div key={index} className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full capitalize">
+                                                    {faq.category}
+                                                </span>
+                                            </div>
+                                            <h4 className="font-semibold text-slate-900 mb-1">{faq.question}</h4>
+                                            <p className="text-sm text-slate-600">{faq.answer}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteFaq(index)}
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Action Buttons */}

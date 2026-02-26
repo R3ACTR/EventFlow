@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown, HelpCircle, ChevronRight } from "lucide-react";
 import CountdownTimer from "@/components/common/CountdownTimer";
 import { downloadICS, downloadICSFromAPI, openInGoogleCalendar } from "@/utils/generateICS";
 
@@ -27,6 +27,8 @@ export default function EventDetailsPage() {
     const [calendarMenuOpen, setCalendarMenuOpen] = useState(false);
     const [downloadError, setDownloadError] = useState(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [faqs, setFaqs] = useState([]);
+    const [expandedFaq, setExpandedFaq] = useState(null);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -120,6 +122,13 @@ export default function EventDetailsPage() {
             if (res.ok) {
                 const data = await res.json();
                 setEvent(data.event);
+            }
+            
+            // Also fetch FAQs
+            const faqRes = await fetch(`/api/events/${pageId}/faqs`);
+            if (faqRes.ok) {
+                const faqData = await faqRes.json();
+                setFaqs(faqData.faqs || []);
             }
         } catch (error) {
             console.error("Error fetching event:", error);
@@ -310,6 +319,40 @@ export default function EventDetailsPage() {
                                     </span>
                                 ))}
                             </div>
+
+                            {/* FAQs Section */}
+                            {faqs.length > 0 && (
+                                <>
+                                    <h3 className="text-xl font-semibold text-slate-900 mt-8 mb-3">Frequently Asked Questions</h3>
+                                    <div className="space-y-3">
+                                        {faqs.map((faq, index) => (
+                                            <div 
+                                                key={index}
+                                                className="border border-slate-200 rounded-xl overflow-hidden"
+                                            >
+                                                <button
+                                                    onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                                                    className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <HelpCircle className="w-5 h-5 text-indigo-500 shrink-0" />
+                                                        <span className="font-medium text-slate-900">{faq.question}</span>
+                                                    </div>
+                                                    <ChevronRight className={`w-5 h-5 text-slate-400 transition-transform ${expandedFaq === index ? 'rotate-90' : ''}`} />
+                                                </button>
+                                                {expandedFaq === index && (
+                                                    <div className="p-4 bg-white border-t border-slate-200">
+                                                        <span className="inline-block px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full capitalize mb-2">
+                                                            {faq.category}
+                                                        </span>
+                                                        <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
