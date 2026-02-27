@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input, Label } from "@/components/ui/form";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X, MapPin } from "lucide-react";
 import Link from "next/link";
 import useFocusTrap from "@/components/common/useFocusTrap";
 import { handleFormKeyDown } from "@/components/common/keyboardNavigation";
@@ -231,15 +231,34 @@ export default function CreateEventPage() {
                                 <p className="text-xs text-slate-400 mt-1">Participants must register before this date.</p>
                             </div>
                             <div className="md:col-span-2">
-                                <Label className="mb-2 block text-sm font-semibold text-slate-700">Location</Label>
-                                <Input
-                                    type="text"
-                                    name="location"
-                                    value={formData.location}
-                                    onChange={handleChange}
-                                    placeholder="e.g., Virtual, San Francisco, CA, London, UK"
-                                    className="h-11"
-                                />
+                                {/* Location Input */}
+                                <div className="space-y-2 relative">
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Location</Label>
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                            <MapPin className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="location"
+                                            maxLength={100}
+                                            value={formData.location}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                                            className="w-full rounded-xl border border-slate-200 pl-11 pr-10 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-black placeholder:text-slate-500 h-11"
+                                            placeholder="e.g., Virtual, San Francisco, CA, London, UK"
+                                        />
+                                        {formData.location.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, location: "" }))}
+                                                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-red-500 transition-colors"
+                                                aria-label="Clear location"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <p className="text-xs text-slate-400 mt-1">Where the event will take place (leave empty for virtual events).</p>
                             </div>
                         </div>
