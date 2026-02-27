@@ -203,6 +203,7 @@ export default function CreateEventPage() {
                                     value={formData.title}
                                     onChange={handleChange}
                                     required
+                                    autoFocus
                                     placeholder="e.g. AI Innovation Hackathon 2024"
                                     className="h-12 text-lg"
                                 />
