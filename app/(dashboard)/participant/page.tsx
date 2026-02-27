@@ -16,7 +16,8 @@ import {
   LayoutGrid,
   Search,
   ChevronRight,
-  X
+  X,
+  RefreshCcw
 } from "lucide-react";
 import TeamBoard from "@/components/dashboards/TeamBoard";
 import useFocusTrap from "@/components/common/useFocusTrap";
@@ -33,6 +34,7 @@ export default function ParticipantDashboard() {
   const [myTeams, setMyTeams] = useState([]); // Array of teams user is part of
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -73,7 +75,8 @@ export default function ParticipantDashboard() {
     }
   }, [status, user?.id]);
 
-  const fetchUserData = async (userId) => {
+  const fetchUserData = async (userId, manualRefresh = false) => {
+    if (manualRefresh) setIsRefreshing(true);
     try {
       // 1. Fetch user's teams
       const teamRes = await fetch(`/api/teams?userId=${userId}`);
@@ -91,6 +94,7 @@ export default function ParticipantDashboard() {
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
+      if (manualRefresh) setIsRefreshing(false);
       setLoading(false);
     }
   };
@@ -278,7 +282,17 @@ export default function ParticipantDashboard() {
             aria-labelledby="participant-tab-browse"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">Upcoming Hackathons</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900">Upcoming Hackathons</h2>
+                <button
+                  onClick={() => fetchUserData(user?.id, true)}
+                  disabled={isRefreshing}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors disabled:opacity-50"
+                  title="Refresh Events"
+                >
+                  <RefreshCcw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-blue-600" : ""}`} />
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 divide-y divide-slate-100">
