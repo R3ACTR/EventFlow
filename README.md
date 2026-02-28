@@ -149,6 +149,14 @@ Returns backend server status.
    ```
 
 Visit: http://localhost:3000
+## Default Ports
+
+During local development, the project uses the following default ports:
+
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5000
+
+This distinction helps ensure frontend applications are configured to communicate with the correct backend service.
 ## API Base URL
 
 During local development, the backend API is accessible at:
