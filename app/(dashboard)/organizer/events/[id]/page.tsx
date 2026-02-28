@@ -29,6 +29,7 @@ import ParticipantList from "@/components/dashboards/organizer/ParticipantList";
 export default function EventDashboard() {
     const params = useParams(); // useParams returns a readonly object, not a Promise in Client Components
     const { id } = params;
+    const router = useRouter();
     const { data: session } = useSession();
     const [event, setEvent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -36,6 +37,7 @@ export default function EventDashboard() {
     const [showJudgeModal, setShowJudgeModal] = useState(false);
     const [copied, setCopied] = useState(false);
     const [isDuplicating, setIsDuplicating] = useState(false);
+    const [copiedTeamId, setCopiedTeamId] = useState(null);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(window.location.search);

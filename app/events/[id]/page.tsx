@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown, HelpCircle, ChevronRight, MapPin, User } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown, HelpCircle, ChevronRight, MapPin, User, Heart } from "lucide-react";
 import CountdownTimer from "@/components/common/CountdownTimer";
 import { downloadICS, downloadICSFromAPI, openInGoogleCalendar } from "@/utils/generateICS";
 
@@ -30,6 +30,8 @@ export default function EventDetailsPage() {
     const [faqs, setFaqs] = useState([]);
     const [expandedFaq, setExpandedFaq] = useState(null);
     const [schedule, setSchedule] = useState([]);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowingLoading, setIsFollowingLoading] = useState(false);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -111,6 +113,50 @@ export default function EventDetailsPage() {
         }
     };
 
+    /**
+     * Toggle follow status for the event
+     */
+    const handleToggleFollow = async () => {
+        if (!session) return;
+        
+        try {
+            setIsFollowingLoading(true);
+            const action = isFollowing ? "unfollow" : "follow";
+            const res = await fetch("/api/user/following", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ eventId: event._id, action })
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setIsFollowing(data.isFollowing);
+            }
+        } catch (error) {
+            console.error("Error toggling follow:", error);
+        } finally {
+            setIsFollowingLoading(false);
+        }
+    };
+
+    /**
+     * Check if user is following this event
+     */
+    const checkFollowStatus = async () => {
+        if (!session || !event?._id) return;
+        
+        try {
+            const res = await fetch("/api/user/following");
+            if (res.ok) {
+                const data = await res.json();
+                const following = data.followingEvents || [];
+                setIsFollowing(following.some(e => e._id === event._id));
+            }
+        } catch (error) {
+            console.error("Error checking follow status:", error);
+        }
+    };
+
     useEffect(() => {
         if (pageId) {
             fetchEventDetails();
@@ -135,6 +181,9 @@ export default function EventDetailsPage() {
                 const faqData = await faqRes.json();
                 setFaqs(faqData.faqs || []);
             }
+            
+            // Check if user is following this event
+            checkFollowStatus();
         } catch (error) {
             console.error("Error fetching event:", error);
         } finally {
@@ -254,6 +303,23 @@ export default function EventDetailsPage() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Follow button */}
+                            {session && (
+                                <button
+                                    onClick={handleToggleFollow}
+                                    disabled={isFollowingLoading}
+                                    className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-lg transition-colors shadow-sm disabled:opacity-50 ${
+                                        isFollowing 
+                                            ? "bg-rose-50 border border-rose-200 text-rose-700 hover:border-rose-400 hover:bg-rose-100"
+                                            : "bg-white border border-slate-300 text-slate-700 hover:border-pink-400 hover:text-pink-600"
+                                    }`}
+                                    title={isFollowing ? "Unfollow this event" : "Follow this event to get updates"}
+                                >
+                                    <Heart className={`w-4 h-4 ${isFollowing ? "fill-current" : ""}`} />
+                                    {isFollowingLoading ? "Loading..." : isFollowing ? "Following" : "Follow"}
+                                </button>
+                            )}
 
                             {/* Copy link button */}
                             <button

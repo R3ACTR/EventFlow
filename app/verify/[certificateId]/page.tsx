@@ -18,14 +18,14 @@ interface Props {
 }
 
 export default async function VerifyCertificate({ params }: Props) {
-  const { certificateId } = params;
+  const { certificateId } = await params;
 
   await dbConnect();
 
   let certificate = null;
 
   try {
-    certificate = await Certificate.findOne({ certificateId })
+    certificate = await Certificate.findOne({ certificateId: certificateId } as any)
       .populate("event")
       .lean();
   } catch (error) {
