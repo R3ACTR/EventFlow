@@ -74,12 +74,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/[0.06]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/[0.06]" suppressHydrationWarning>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" suppressHydrationWarning>
+        <div className="flex justify-between items-center h-16" suppressHydrationWarning>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition group">
-            <div className="w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-violet rounded-lg flex items-center justify-center shadow-lg shadow-neon-cyan/20 group-hover:shadow-neon-cyan/40 transition">
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition group" suppressHydrationWarning>
+            <div className="w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-violet rounded-lg flex items-center justify-center shadow-lg shadow-neon-cyan/20 group-hover:shadow-neon-cyan/40 transition" suppressHydrationWarning>
               <Zap className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-white tracking-wider">
@@ -88,7 +88,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-8" role="navigation" aria-label="Main navigation">
+          <div className="hidden md:flex items-center gap-8" role="navigation" aria-label="Main navigation" suppressHydrationWarning>
             <Link
               href="/#features"
               className="text-slate-400 hover:text-neon-cyan transition font-medium text-sm tracking-wide uppercase focus:outline-none focus:text-neon-cyan"
@@ -126,7 +126,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3" suppressHydrationWarning>
             {session ? (
               <>
                 {(session.user?.image || session.user?.avatarUrl) && !imgError ? (
@@ -277,6 +277,7 @@ export default function Navbar() {
                       <button
                         onClick={toggleTheme}
                         className="px-3 py-1 border rounded"
+                        suppressHydrationWarning
                       >
                         {darkMode ? "Light Mode" : "Dark Mode"}
                       </button>
