@@ -99,6 +99,20 @@ EventFlow addresses these challenges by providing a reusable, modular event infr
 ---
 
 ## Installation
+---
+
+## Health Check
+
+### GET /health
+
+Returns backend server status.
+
+**Response:**
+
+```json
+{
+  "success": true
+}
 
 ### Prerequisites
 - Node.js 18+

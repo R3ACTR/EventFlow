@@ -24,6 +24,13 @@ const UserSchema = new mongoose.Schema(
             linkedin: String,
             website: String,
         },
+        
+        // Event Following/Watchlist
+        followingEvents: [{ 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: "Event" 
+        }],
+        
         isDeleted: {
             type: Boolean,
             default: false,
@@ -42,17 +49,17 @@ const UserSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-function excludeSoftDeleted(next) {
+// Soft delete middleware - using async/await pattern for Mongoose 8+
+async function excludeSoftDeleted() {
     const options = this.getOptions?.() || {};
     if (!options.includeDeleted) {
         this.where({ isDeleted: { $ne: true } });
     }
-    next();
 }
 
-UserSchema.pre("find", excludeSoftDeleted);
-UserSchema.pre("findOne", excludeSoftDeleted);
-UserSchema.pre("findOneAndUpdate", excludeSoftDeleted);
-UserSchema.pre("countDocuments", excludeSoftDeleted);
+UserSchema.pre("find", { document: false, query: true }, excludeSoftDeleted);
+UserSchema.pre("findOne", { document: false, query: true }, excludeSoftDeleted);
+UserSchema.pre("findOneAndUpdate", { document: false, query: true }, excludeSoftDeleted);
+UserSchema.pre("countDocuments", { document: false, query: true }, excludeSoftDeleted);
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

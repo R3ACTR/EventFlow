@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown, HelpCircle, ChevronRight } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Check, Link2, Twitter, Linkedin, Facebook, MessageCircle, CalendarPlus, ChevronDown, HelpCircle, ChevronRight, MapPin, User } from "lucide-react";
 import CountdownTimer from "@/components/common/CountdownTimer";
 import { downloadICS, downloadICSFromAPI, openInGoogleCalendar } from "@/utils/generateICS";
 
@@ -29,6 +29,7 @@ export default function EventDetailsPage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [faqs, setFaqs] = useState([]);
     const [expandedFaq, setExpandedFaq] = useState(null);
+    const [schedule, setSchedule] = useState([]);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -122,6 +123,10 @@ export default function EventDetailsPage() {
             if (res.ok) {
                 const data = await res.json();
                 setEvent(data.event);
+                // Set schedule from event data
+                if (data.event.schedule) {
+                    setSchedule(data.event.schedule);
+                }
             }
             
             // Also fetch FAQs
@@ -319,6 +324,73 @@ export default function EventDetailsPage() {
                                     </span>
                                 ))}
                             </div>
+
+                            {/* Schedule Section */}
+                            {schedule && schedule.length > 0 && (
+                                <>
+                                    <h3 className="text-xl font-semibold text-slate-900 mt-8 mb-3">Event Schedule</h3>
+                                    <div className="space-y-3">
+                                        {[...schedule].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()).map((item, index) => (
+                                            <div 
+                                                key={index}
+                                                className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors"
+                                            >
+                                                <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
+                                                    item.type === 'keynote' ? 'bg-purple-100 text-purple-600' :
+                                                    item.type === 'workshop' ? 'bg-blue-100 text-blue-600' :
+                                                    item.type === 'break' ? 'bg-amber-100 text-amber-600' :
+                                                    item.type === 'networking' ? 'bg-green-100 text-green-600' :
+                                                    'bg-indigo-100 text-indigo-600'
+                                                }`}>
+                                                    {item.type === 'keynote' && <User className="w-6 h-6" />}
+                                                    {item.type === 'workshop' && <Clock className="w-6 h-6" />}
+                                                    {item.type === 'break' && <span className="text-lg">☕</span>}
+                                                    {item.type === 'networking' && <User className="w-6 h-6" />}
+                                                    {item.type === 'presentation' && <Clock className="w-6 h-6" />}
+                                                    {item.type === 'competition' && <span className="text-lg">🏆</span>}
+                                                    {item.type === 'other' && <Clock className="w-6 h-6" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <h4 className="font-semibold text-slate-900">{item.title}</h4>
+                                                        <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${
+                                                            item.type === 'keynote' ? 'bg-purple-100 text-purple-700' :
+                                                            item.type === 'workshop' ? 'bg-blue-100 text-blue-700' :
+                                                            item.type === 'break' ? 'bg-amber-100 text-amber-700' :
+                                                            item.type === 'networking' ? 'bg-green-100 text-green-700' :
+                                                            item.type === 'presentation' ? 'bg-cyan-100 text-cyan-700' :
+                                                            item.type === 'competition' ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-slate-100 text-slate-700'
+                                                        }`}>
+                                                            {item.type}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+                                                        <Clock className="w-4 h-4" />
+                                                        {new Date(item.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                                                        {new Date(item.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                    </p>
+                                                    {item.location && (
+                                                        <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                                                            <MapPin className="w-4 h-4" />
+                                                            {item.location}
+                                                        </p>
+                                                    )}
+                                                    {item.description && (
+                                                        <p className="text-sm text-slate-600 mt-2">{item.description}</p>
+                                                    )}
+                                                    {item.speaker?.name && (
+                                                        <p className="text-sm text-indigo-600 mt-2 flex items-center gap-1">
+                                                            <User className="w-4 h-4" />
+                                                            {item.speaker.name}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
 
                             {/* FAQs Section */}
                             {faqs.length > 0 && (

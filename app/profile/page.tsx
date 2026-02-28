@@ -29,6 +29,12 @@ export default async function ProfilePage() {
     _id: fullUser._id.toString(),
     createdAt: fullUser.createdAt ? fullUser.createdAt.toISOString() : null,
     updatedAt: fullUser.updatedAt ? fullUser.updatedAt.toISOString() : null,
+    // Serialize followingEvents array to plain objects
+    followingEvents: fullUser.followingEvents?.map((e: any) => 
+      typeof e === 'object' && e !== null 
+        ? { _id: e._id?.toString() } 
+        : e
+    ) || [],
   };
 
   return <ProfileDashboardClient user={serializedUser} />;

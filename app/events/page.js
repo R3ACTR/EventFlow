@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Calendar, Users, Trophy, ArrowRight, Star, MapPin, Search, FilterX, Twitter, Linkedin, Facebook, MessageCircle, Link2, Check, CalendarPlus, Bookmark } from "lucide-react";
+import { Calendar, Users, Trophy, ArrowRight, Star, MapPin, Search, FilterX, Twitter, Linkedin, Facebook, MessageCircle, Link2, Check, CalendarPlus, Bookmark, Bell } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Aurora from "@/components/common/Aurora";
 import { downloadICS } from "@/utils/generateICS";
@@ -18,10 +18,30 @@ export default function EventsPage() {
     const [copiedId, setCopiedId] = useState(null);
     const [bookmarks, setBookmarks] = useState([]);
     const [showBookmarked, setShowBookmarked] = useState(false);
+    const [following, setFollowing] = useState([]);
+    const [showFollowing, setShowFollowing] = useState(false);
+    const [followingLoading, setFollowingLoading] = useState(false);
 
     // Load bookmarks on mount
     useEffect(() => {
         setBookmarks(getBookmarks());
+    }, []);
+
+    // Load following events on mount
+    useEffect(() => {
+        const fetchFollowing = async () => {
+            try {
+                const response = await fetch('/api/user/following');
+                const data = await response.json();
+                if (data.followingEvents) {
+                    setFollowing(data.followingEvents.map(e => e._id));
+                }
+            } catch (err) {
+                console.error("Error fetching following events:", err);
+            }
+        };
+        
+        fetchFollowing();
     }, []);
 
     useEffect(() => {
@@ -121,14 +141,45 @@ export default function EventsPage() {
         }
     };
 
+    const handleToggleFollow = async (eventId, e) => {
+        e.stopPropagation();
+        setFollowingLoading(true);
+        
+        const isFollowing = following.includes(eventId);
+        const action = isFollowing ? 'unfollow' : 'follow';
+        
+        try {
+            const response = await fetch('/api/user/following', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventId, action })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (isFollowing) {
+                    setFollowing(prev => prev.filter(id => id !== eventId));
+                } else {
+                    setFollowing(prev => [...prev, eventId]);
+                }
+            }
+        } catch (err) {
+            console.error("Error toggling follow:", err);
+        } finally {
+            setFollowingLoading(false);
+        }
+    };
+
     const clearFilters = () => {
         setSearchTerm("");
         setCategory("");
         setLocation("");
         setShowBookmarked(false);
+        setShowFollowing(false);
     };
 
-    const hasActiveFilters = searchTerm || category || location || showBookmarked;
+    const hasActiveFilters = searchTerm || category || location || showBookmarked || showFollowing;
 
     const filteredEvents = events.filter((event) => {
         const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -136,8 +187,9 @@ export default function EventsPage() {
         const matchesCategory = category ? event.category === category : true;
         const matchesLocation = location ? event.location.includes(location) : true;
         const matchesBookmark = showBookmarked ? bookmarks.includes(event.id) : true;
+        const matchesFollowing = showFollowing ? following.includes(event.id) : true;
         
-        return matchesSearch && matchesCategory && matchesLocation && matchesBookmark;
+        return matchesSearch && matchesCategory && matchesLocation && matchesBookmark && matchesFollowing;
     });
 
     const categories = Array.from(new Set(events.map(e => e.category)));
@@ -236,6 +288,17 @@ export default function EventsPage() {
                                 <Bookmark className={`w-4 h-4 ${showBookmarked ? 'fill-current' : ''}`} />
                                 {showBookmarked ? 'Show All' : 'Watch Later'}
                             </button>
+                            <button
+                                onClick={() => setShowFollowing(!showFollowing)}
+                                className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl transition-all duration-300 font-medium whitespace-nowrap ${
+                                    showFollowing 
+                                        ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30 hover:bg-neon-cyan/30'
+                                        : 'bg-white/5 text-slate-400 border-white/10 hover:border-white/30 hover:text-white'
+                                }`}
+                            >
+                                <Bell className={`w-4 h-4 ${showFollowing ? 'fill-current' : ''}`} />
+                                {showFollowing ? 'Show All' : 'Following'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -284,6 +347,18 @@ export default function EventsPage() {
                                             title={bookmarks.includes(event.id) ? "Remove from Watch Later" : "Add to Watch Later"}
                                         >
                                             <Bookmark className={`w-4 h-4 ${bookmarks.includes(event.id) ? 'fill-current' : ''}`} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleToggleFollow(event.id, e)}
+                                            disabled={followingLoading}
+                                            className={`p-2 rounded-lg border transition-all duration-300 ${
+                                                following.includes(event.id)
+                                                    ? 'border-neon-cyan/50 bg-neon-cyan/20 text-neon-cyan'
+                                                    : 'border-white/10 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 text-slate-400 hover:text-neon-cyan'
+                                            }`}
+                                            title={following.includes(event.id) ? "Unfollow event" : "Follow event for updates"}
+                                        >
+                                            <Bell className={`w-4 h-4 ${following.includes(event.id) ? 'fill-current' : ''}`} />
                                         </button>
                                     </div>
 

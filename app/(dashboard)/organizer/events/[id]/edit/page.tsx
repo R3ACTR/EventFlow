@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Input, Label } from "@/components/ui/form";
-import { ArrowLeft, Plus, X, HelpCircle } from "lucide-react";
+import { ArrowLeft, Plus, X, HelpCircle, Clock, MapPin, User, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function EditEventPage() {
@@ -18,6 +18,17 @@ export default function EditEventPage() {
     const [trackInput, setTrackInput] = useState("");
     const [faqs, setFaqs] = useState([]);
     const [newFaq, setNewFaq] = useState({ question: "", answer: "", category: "general" });
+    const [schedule, setSchedule] = useState([]);
+    const [newScheduleItem, setNewScheduleItem] = useState({
+        title: "",
+        description: "",
+        startTime: "",
+        endTime: "",
+        location: "",
+        type: "other",
+        speakerName: "",
+        speakerBio: ""
+    });
 
     const [formData, setFormData] = useState({
         title: "",
@@ -65,6 +76,7 @@ export default function EditEventPage() {
                 });
                 setTracks(event.tracks || []);
                 setFaqs(event.faqs || []);
+                setSchedule(event.schedule || []);
             } else {
                 router.push("/organizer");
             }
@@ -139,6 +151,78 @@ export default function EditEventPage() {
         } catch (error) {
             console.error("Error deleting FAQ:", error);
             alert("Failed to delete FAQ");
+        }
+    };
+
+    const handleAddScheduleItem = async () => {
+        if (!newScheduleItem.title || !newScheduleItem.startTime || !newScheduleItem.endTime) {
+            alert("Title, start time, and end time are required");
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/events/${id}/schedule`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: newScheduleItem.title,
+                    description: newScheduleItem.description,
+                    startTime: newScheduleItem.startTime,
+                    endTime: newScheduleItem.endTime,
+                    location: newScheduleItem.location,
+                    type: newScheduleItem.type,
+                    speaker: newScheduleItem.speakerName ? { name: newScheduleItem.speakerName, bio: newScheduleItem.speakerBio, avatar: "" } : { name: "", bio: "", avatar: "" }
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Fetch updated schedule
+                const eventRes = await fetch(`/api/events/${id}`);
+                if (eventRes.ok) {
+                    const eventData = await eventRes.json();
+                    setSchedule(eventData.event.schedule || []);
+                }
+                setNewScheduleItem({
+                    title: "",
+                    description: "",
+                    startTime: "",
+                    endTime: "",
+                    location: "",
+                    type: "other",
+                    speakerName: "",
+                    speakerBio: ""
+                });
+            } else {
+                const error = await res.json();
+                alert(error.error || "Failed to add schedule item");
+            }
+        } catch (error) {
+            console.error("Error adding schedule item:", error);
+            alert("Failed to add schedule item");
+        }
+    };
+
+    const handleDeleteScheduleItem = async (itemId) => {
+        try {
+            const res = await fetch(`/api/events/${id}/schedule?itemId=${itemId}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                // Fetch updated schedule
+                const eventRes = await fetch(`/api/events/${id}`);
+                if (eventRes.ok) {
+                    const eventData = await eventRes.json();
+                    setSchedule(eventData.event.schedule || []);
+                }
+            } else {
+                const error = await res.json();
+                alert(error.error || "Failed to delete schedule item");
+            }
+        } catch (error) {
+            console.error("Error deleting schedule item:", error);
+            alert("Failed to delete schedule item");
         }
     };
 
@@ -503,6 +587,185 @@ export default function EditEventPage() {
                                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                         >
                                             <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Schedule */}
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                        <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-2">
+                            <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+                                <Clock className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900">Event Schedule</h2>
+                                <p className="text-sm text-slate-500">Plan your event timeline with sessions, workshops, and breaks</p>
+                            </div>
+                        </div>
+
+                        {/* Add new schedule item form */}
+                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
+                            <h3 className="font-semibold text-slate-800">Add New Session</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Session Title <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        value={newScheduleItem.title}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, title: e.target.value})}
+                                        placeholder="e.g., Opening Keynote"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Type</Label>
+                                    <select
+                                        value={newScheduleItem.type}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, type: e.target.value})}
+                                        className="w-full h-11 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    >
+                                        <option value="keynote">Keynote</option>
+                                        <option value="workshop">Workshop</option>
+                                        <option value="break">Break</option>
+                                        <option value="networking">Networking</option>
+                                        <option value="presentation">Presentation</option>
+                                        <option value="competition">Competition</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Location</Label>
+                                    <Input
+                                        value={newScheduleItem.location}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, location: e.target.value})}
+                                        placeholder="e.g., Main Hall"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Start Time <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        type="datetime-local"
+                                        value={newScheduleItem.startTime}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, startTime: e.target.value})}
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">End Time <span className="text-red-500">*</span></Label>
+                                    <Input
+                                        type="datetime-local"
+                                        value={newScheduleItem.endTime}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, endTime: e.target.value})}
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Speaker Name</Label>
+                                    <Input
+                                        value={newScheduleItem.speakerName}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, speakerName: e.target.value})}
+                                        placeholder="e.g., John Doe"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Speaker Bio</Label>
+                                    <Input
+                                        value={newScheduleItem.speakerBio}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, speakerBio: e.target.value})}
+                                        placeholder="Brief speaker bio"
+                                        className="h-11"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label className="mb-2 block text-sm font-semibold text-slate-700">Description</Label>
+                                    <textarea
+                                        value={newScheduleItem.description}
+                                        onChange={(e) => setNewScheduleItem({...newScheduleItem, description: e.target.value})}
+                                        rows={2}
+                                        className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                        placeholder="Brief description of the session..."
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddScheduleItem}
+                                className="w-full px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Add to Schedule
+                            </button>
+                        </div>
+
+                        {/* Schedule List */}
+                        {schedule.length === 0 ? (
+                            <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                <Clock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                                <p className="text-sm text-slate-500">No sessions added yet. Add your first session above.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {[...schedule].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()).map((item) => (
+                                    <div key={item._id} className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors">
+                                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
+                                            item.type === 'keynote' ? 'bg-purple-100 text-purple-600' :
+                                            item.type === 'workshop' ? 'bg-blue-100 text-blue-600' :
+                                            item.type === 'break' ? 'bg-amber-100 text-amber-600' :
+                                            item.type === 'networking' ? 'bg-green-100 text-green-600' :
+                                            'bg-indigo-100 text-indigo-600'
+                                        }`}>
+                                            {item.type === 'keynote' && <User className="w-6 h-6" />}
+                                            {item.type === 'workshop' && <Clock className="w-6 h-6" />}
+                                            {item.type === 'break' && <span className="text-lg">☕</span>}
+                                            {item.type === 'networking' && <User className="w-6 h-6" />}
+                                            {item.type === 'presentation' && <Clock className="w-6 h-6" />}
+                                            {item.type === 'competition' && <span className="text-lg">🏆</span>}
+                                            {item.type === 'other' && <Clock className="w-6 h-6" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h4 className="font-semibold text-slate-900">{item.title}</h4>
+                                                <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${
+                                                    item.type === 'keynote' ? 'bg-purple-100 text-purple-700' :
+                                                    item.type === 'workshop' ? 'bg-blue-100 text-blue-700' :
+                                                    item.type === 'break' ? 'bg-amber-100 text-amber-700' :
+                                                    item.type === 'networking' ? 'bg-green-100 text-green-700' :
+                                                    'bg-slate-100 text-slate-700'
+                                                }`}>
+                                                    {item.type}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+                                                <Clock className="w-4 h-4" />
+                                                {new Date(item.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                                                {new Date(item.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            </p>
+                                            {item.location && (
+                                                <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                                                    <MapPin className="w-4 h-4" />
+                                                    {item.location}
+                                                </p>
+                                            )}
+                                            {item.description && (
+                                                <p className="text-sm text-slate-600 mt-2">{item.description}</p>
+                                            )}
+                                            {item.speaker?.name && (
+                                                <p className="text-sm text-indigo-600 mt-2 flex items-center gap-1">
+                                                    <User className="w-4 h-4" />
+                                                    {item.speaker.name}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteScheduleItem(item._id)}
+                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
                                 ))}

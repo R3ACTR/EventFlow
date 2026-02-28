@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -40,6 +40,9 @@ export default function TeamManagePage() {
     const [demoLink, setDemoLink] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const [showSubmitForm, setShowSubmitForm] = useState(false);
+    const hasRestoredDraftRef = useRef(false);
+
+    const draftStorageKey = teamId ? `submission-draft-${teamId}` : null;
 
     useEffect(() => {
         if (status === "authenticated") {
@@ -127,6 +130,9 @@ export default function TeamManagePage() {
                 setSubmission(data.submission);
                 setShowSubmitForm(false);
                 setIsEditing(false);
+                if (draftStorageKey) {
+                    localStorage.removeItem(draftStorageKey);
+                }
                 // Reset form
                 setProjectTitle("");
                 setProjectDesc("");
@@ -144,6 +150,67 @@ export default function TeamManagePage() {
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        hasRestoredDraftRef.current = false;
+    }, [teamId]);
+
+    useEffect(() => {
+        if (!draftStorageKey || loading || hasRestoredDraftRef.current) {
+            return;
+        }
+
+        hasRestoredDraftRef.current = true;
+
+        try {
+            const rawDraft = localStorage.getItem(draftStorageKey);
+            if (!rawDraft) {
+                return;
+            }
+
+            const draft = JSON.parse(rawDraft);
+            const hasContent = [draft?.projectTitle, draft?.projectDesc, draft?.repoLink, draft?.demoLink]
+                .some((value) => typeof value === "string" && value.trim().length > 0);
+
+            if (!hasContent) {
+                return;
+            }
+
+            setProjectTitle(draft.projectTitle || "");
+            setProjectDesc(draft.projectDesc || "");
+            setRepoLink(draft.repoLink || "");
+            setDemoLink(draft.demoLink || "");
+            setShowSubmitForm(true);
+        } catch (error) {
+            console.error("Failed to restore submission draft:", error);
+        }
+    }, [draftStorageKey, loading]);
+
+    useEffect(() => {
+        if (!draftStorageKey || !showSubmitForm) {
+            return;
+        }
+
+        const saveDraft = () => {
+            try {
+                const draft = {
+                    projectTitle,
+                    projectDesc,
+                    repoLink,
+                    demoLink,
+                    updatedAt: Date.now(),
+                };
+                localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+            } catch (error) {
+                console.error("Failed to auto-save submission draft:", error);
+            }
+        };
+
+        const intervalId = setInterval(saveDraft, 30000);
+        saveDraft();
+
+        return () => clearInterval(intervalId);
+    }, [draftStorageKey, showSubmitForm, projectTitle, projectDesc, repoLink, demoLink]);
 
     if (loading) {
         return (

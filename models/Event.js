@@ -101,6 +101,26 @@ const EventSchema = new mongoose.Schema(
                 enum: ['general', 'registration', 'submission', 'judging', 'prizes'], 
                 default: 'general' 
             }
+        }],
+
+        // Event Schedule/Timeline
+        schedule: [{
+            title: { type: String, required: true },
+            description: String,
+            startTime: { type: Date, required: true },
+            endTime: { type: Date, required: true },
+            location: String,
+            type: { 
+                type: String, 
+                enum: ['keynote', 'workshop', 'break', 'networking', 'presentation', 'competition', 'other'], 
+                default: 'other' 
+            },
+            speaker: {
+                name: String,
+                bio: String,
+                avatar: String
+            },
+            tags: [String]
         }]
 
     },

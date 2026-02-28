@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Camera, Upload, X, Loader2, Edit2, Github, Linkedin, Globe, Mail, Shield, User as UserIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Camera, Upload, X, Loader2, Edit2, Github, Linkedin, Globe, Mail, Shield, User as UserIcon, Bell, Calendar, MapPin, ExternalLink, BellOff } from "lucide-react";
 import Button from "@/components/common/Button";
 
 const getGithubUrl = (value) => {
@@ -34,6 +34,8 @@ export default function ProfileDashboardClient({ user: initialUser }) {
   const [imgError, setImgError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef(null);
+  const [followedEvents, setFollowedEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -43,6 +45,43 @@ export default function ProfileDashboardClient({ user: initialUser }) {
     linkedin: user?.socialLinks?.linkedin || "",
     website: user?.socialLinks?.website || "",
   });
+
+  // Fetch followed events on mount
+  useEffect(() => {
+    const fetchFollowedEvents = async () => {
+      setLoadingEvents(true);
+      try {
+        const response = await fetch('/api/user/following');
+        const data = await response.json();
+        if (data.followingEvents) {
+          setFollowedEvents(data.followingEvents);
+        }
+      } catch (err) {
+        console.error("Error fetching followed events:", err);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    
+    fetchFollowedEvents();
+  }, []);
+
+  const handleUnfollow = async (eventId) => {
+    try {
+      const response = await fetch('/api/user/following', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, action: 'unfollow' })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setFollowedEvents(prev => prev.filter(e => e._id !== eventId));
+      }
+    } catch (err) {
+      console.error("Error unfollowing event:", err);
+    }
+  };
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -338,6 +377,71 @@ export default function ProfileDashboardClient({ user: initialUser }) {
                         </a>
                       ) : <p className="text-slate-500 italic text-sm flex items-center gap-2"><Globe className="w-4 h-4" /> Not connected</p>}
                     </div>
+                  </div>
+
+                  <hr className="border-white/10" />
+
+                  {/* Followed Events Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-neon-cyan uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Bell className="w-4 h-4" />
+                      My Followed Events
+                    </h3>
+                    {loadingEvents ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 text-neon-cyan animate-spin" />
+                      </div>
+                    ) : followedEvents.length > 0 ? (
+                      <div className="grid gap-4">
+                        {followedEvents.map((event) => (
+                          <div
+                            key={event._id}
+                            className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 hover:border-neon-cyan/30 transition group"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <a href={`/events/${event._id}`} className="block">
+                                  <h4 className="text-white font-medium group-hover:text-neon-cyan transition truncate">
+                                    {event.title}
+                                  </h4>
+                                  <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                                    {event.description}
+                                  </p>
+                                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                                    <span className="flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      {new Date(event.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {event.location || 'Virtual'}
+                                    </span>
+                                  </div>
+                                </a>
+                              </div>
+                              <div className="flex flex-col items-end gap-2 ml-2">
+                                <a 
+                                  href={`/events/${event._id}`}
+                                  className="p-2 text-slate-500 hover:text-neon-cyan transition"
+                                  title="View event"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
+                                <button
+                                  onClick={() => handleUnfollow(event._id)}
+                                  className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                                  title="Unfollow event"
+                                >
+                                  <BellOff className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 italic">You're not following any events yet. Browse events and click the bell icon to follow!</p>
+                    )}
                   </div>
                 </div>
               ) : (
