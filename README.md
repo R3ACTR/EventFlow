@@ -150,6 +150,20 @@ Returns backend server status.
    ```
 
 Visit: http://localhost:3000
+
+## Environment Variables
+
+The following environment variables are required to run the project correctly.
+Ensure they are defined before starting the application.
+
+| Variable Name   | Description |
+|-----------------|-------------|
+| DATABASE_URL    | MongoDB connection string |
+| NEXTAUTH_URL    | Authentication callback URL |
+
+### Notes
+- These variables should be set in your environment configuration file.
+- Restart the development server after updating environment variables.
 ## Common Issues & Fixes
 
 This section helps contributors quickly resolve frequent setup and runtime problems.
