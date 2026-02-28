@@ -150,6 +150,10 @@ Returns backend server status.
    ```
 
 Visit: http://localhost:3000
+## API Base URL
+
+During local development, the backend API is accessible at:
+
 
 ## Environment Variables
 
