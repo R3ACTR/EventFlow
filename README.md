@@ -149,6 +149,33 @@ Returns backend server status.
    ```
 
 Visit: http://localhost:3000
+## Common Issues & Fixes
+
+This section helps contributors quickly resolve frequent setup and runtime problems.
+
+### App Not Starting
+
+**Possible Causes**
+- Missing or incorrect `.env` configuration
+- Dependencies not installed
+
+**Fix**
+- Ensure `.env.local` exists and contains required variables
+- Run `pnpm install` before starting the server
+- Restart the dev server after environment changes
+
+---
+
+### Auth Callback URL Misconfiguration
+
+**Problem**
+Authentication fails or redirects incorrectly during login.
+
+**Fix**
+- Ensure `NEXTAUTH_URL` is correctly set in `.env.local`
+- Example:
+  ```env
+  NEXTAUTH_URL=http://localhost:3000S
 
 ---
 
