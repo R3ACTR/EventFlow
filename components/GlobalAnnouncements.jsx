@@ -25,9 +25,9 @@ export default function GlobalAnnouncements() {
   if (!announcements.length) return null;
 
   return (
-    <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-900 px-4 py-2 text-sm">
+    <div className="w-full bg-yellow-100 border-b border-yellow-300 text-yellow-900 px-4 py-2 text-sm" suppressHydrationWarning>
       {announcements.map((a) => (
-        <div key={a._id} className="mb-1">
+        <div key={a._id} className="mb-1" suppressHydrationWarning>
           <strong>{a.title}</strong>: {a.message}
         </div>
       ))}
